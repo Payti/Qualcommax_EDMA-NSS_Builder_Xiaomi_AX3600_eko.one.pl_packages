@@ -131,8 +131,8 @@ jobs:
           set -euo pipefail
           CONFIG_FILE="builder/${{ env.DEVICE_DIR }}/config.edma-nss"
           if [ -f "$CONFIG_FILE" ]; then
-            # Wyczyszczenie starych flag wersji NSS
-            sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$CONFIG_FILE"
+            # Dodano '|| true' aby zapobiec wywaleniu skryptu, gdy wpis nie istnieje
+            sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$CONFIG_FILE" || true
             
             # Wstrzyknięcie odpowiedniej wersji na podstawie macierzy
             if [ "${{ matrix.nss_version }}" = "edma-nss_11.4" ]; then
@@ -142,6 +142,8 @@ jobs:
               echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> "$CONFIG_FILE"
               echo "Successfully patched config.edma-nss with CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
             fi
+          else
+            echo "::warning::Config file not found at $CONFIG_FILE"
           fi
 
       - name: Prepare build environment
@@ -192,9 +194,9 @@ jobs:
 
           # Aktualizacja informacji dla panelu WWW (LuCI)
           TARGET_RELEASE_FILE="package/base-files/files/etc/openwrt_release"
-          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (${{ matrix.nss_version }} - EDMA-NSS build by @Payti)"
+          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (${{ matrix.nss_version }} - NSS build by @Payti)"
           if [ -f "$TARGET_RELEASE_FILE" ]; then
-            sed -i '/DISTRIB_DESCRIPTION=/d' "$TARGET_RELEASE_FILE"
+            sed -i '/DISTRIB_DESCRIPTION=/d' "$TARGET_RELEASE_FILE" || true
             echo "DISTRIB_DESCRIPTION='${DISTRIB_DESCRIPTION}'" >> "$TARGET_RELEASE_FILE"
           fi
 
