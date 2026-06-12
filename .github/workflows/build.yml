@@ -125,13 +125,13 @@ jobs:
         with:
           path: builder
       
-      # MODYFIKACJA DLA PLIKU CONFIG.EDMA-NSS
+      # MODYFIKACJA DLA PLIKU CONFIG.EDMA-NSS (Wprowadzone sztywne ścieżki dla Xiaomi AX3600)
       - name: Tweak config for selected NSS Firmware version
         run: |
           set -euo pipefail
-          CONFIG_FILE="builder/${{ env.DEVICE_DIR }}/config.edma-nss"
+          CONFIG_FILE="builder/devices/xiaomi_ax3600/config.edma-nss"
           if [ -f "$CONFIG_FILE" ]; then
-            # Dodano '|| true' aby zapobiec wywaleniu skryptu, gdy wpis nie istnieje
+            # Usuwamy stare flagi wersji NSS, jeśli istniały
             sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$CONFIG_FILE" || true
             
             # Wstrzyknięcie odpowiedniej wersji na podstawie macierzy
@@ -143,20 +143,21 @@ jobs:
               echo "Successfully patched config.edma-nss with CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
             fi
           else
-            echo "::warning::Config file not found at $CONFIG_FILE"
+            echo "::error::Config file truly not found at $CONFIG_FILE"
+            exit 1
           fi
 
-      # NAPRAWIONY KROK: Przekazanie DEVICE oraz DEVICE_DIR do skryptu prepare-build.sh
+      # NAPRAWIONY KROK: Przekazanie sztywnych wartości DEVICE bezpośrednio do środowiska
       - name: Prepare build environment
         env:
           OPENWRT_DIR: ${{ github.workspace }}/openwrt
           BUILDER_REPO: ${{ github.workspace }}/builder
           VARIANT: ${{ matrix.nss_version }}
-          DEVICE: ${{ needs.config.outputs.device }}        # <--- TA LINIA NAPRAWIA BŁĄD LINIJKI 28
-          DEVICE_DIR: ${{ needs.config.outputs.device_dir }}  # <--- DODATKOWE ZABEZPIECZENIE
+          DEVICE: xiaomi_ax3600
+          DEVICE_DIR: devices/xiaomi_ax3600
         run: bash builder/scripts/prepare-build.sh
 
-      # DYNAMICZNY BANNER DOSTOSOWANY DO WERSJI EDMA-NSS
+      # DYNAMICZNY BANNER (Zabezpieczony przed pustym MAIN_SHA)
       - name: Dynamically update custom OpenWrt banner info
         working-directory: openwrt
         run: |
@@ -175,9 +176,7 @@ jobs:
             VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (${{ matrix.nss_version }})"
             DATE_LINE="Build time: $CURRENT_BUILD_TIME"
 
-            # DOPASOWANIE MATEMATYCZNE DLA SYMETRII EDMA-NSS (Łącznie 76 znaków):
-            # " | " (3 znaki) + %-72s (72 znaki bufora) + "|" (1 znak) = Dokładnie 76 znaków.
-            
+            # SZTYWNA SZEROKOŚĆ DLA RAMKI EDMA-NSS (76 znaków łącznie):
             VERSION_PADDING=$(printf '%-72s' "$VERSION_LINE")
             FINAL_VERSION_ROW=" | ${VERSION_PADDING}|"
 
