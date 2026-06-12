@@ -16,7 +16,7 @@
 
 # Release publishing settings, shared by every variant.
 release:
-  keep: 2                       # newest releases to retain *per variant prefix*
+  keep: 4                       # newest releases to retain *per variant prefix*
   artifact_retention_days: 7    # GitHub Actions artifact retention (separate from the release)
 
 # Build variants. Add, remove, or retarget freely — the pipeline is a matrix over this list.
@@ -46,5 +46,7 @@ variants:
     feeds:                                # appended to feeds.conf as `src-git <name> <url>`
       - name: nss
         url: https://github.com/JuliusBairaktaris/nss-packages.git;edma-nss
+      - name: obsy
+        url: https://github.com/obsy/packages          
     release:
       prefix: edma-nss                    # tag = <prefix>-<UTC timestamp>-<run id>
