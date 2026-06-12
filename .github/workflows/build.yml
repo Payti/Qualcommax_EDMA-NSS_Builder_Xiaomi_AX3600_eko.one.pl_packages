@@ -112,11 +112,12 @@ jobs:
           sudo apt-get install -y \
             bzip2 g++ gawk gcc git glibc-source libncurses-dev make rsync
 
+      # 1. POPRAWIONY CHECKOUT: Pobierze źródła OpenWrt nawet jeśli MAIN_SHA jest puste!
       - name: Checkout OpenWrt source
         uses: actions/checkout@v6
         with:
-          repository: ${{ matrix.upstream_repo }}
-          ref: ${{ matrix.upstream_sha }}
+          repository: ${{ needs.config.outputs.upstream_repo || 'openwrt/openwrt' }}
+          ref: ${{ env.MAIN_SHA || 'main' }}
           fetch-depth: 0
           path: openwrt
 
@@ -124,24 +125,19 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: builder
-      
-      # MODYFIKACJA DLA PLIKU CONFIG.EDMA-NSS + GENEROWANIE PLIKU DLA WARIANTU
+
+      # 2. MODYFIKACJA CONFIG.EDMA-NSS
       - name: Tweak config for selected NSS Firmware version
         run: |
           set -euo pipefail
           
           BASE_CONFIG="builder/devices/xiaomi_ax3600/config.edma-nss"
-          # Ścieżka docelowa, jakiej szuka skrypt prepare-build.sh (np. config.edma-nss_11.4)
           TARGET_CONFIG="builder/devices/xiaomi_ax3600/config.${{ matrix.nss_version }}"
 
           if [ -f "$BASE_CONFIG" ]; then
-            # Skopiuj bazowy plik konfiguracyjny do nazwy z końcówką wariantu
             cp "$BASE_CONFIG" "$TARGET_CONFIG"
-            
-            # Usuń stare flagi wersji NSS z nowego pliku wariantu
             sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$TARGET_CONFIG" || true
             
-            # Wstrzyknięcie odpowiedniej wersji na podstawie macierzy
             if [ "${{ matrix.nss_version }}" = "edma-nss_11.4" ]; then
               echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=y" >> "$TARGET_CONFIG"
               echo "Successfully generated and patched $TARGET_CONFIG with CONFIG_NSS_FIRMWARE_VERSION_11_4=y"
@@ -154,7 +150,7 @@ jobs:
             exit 1
           fi
 
-      # NAPRAWIONY KROK: Usunięto working-directory, naprawiono feeds.conf.default za pomocą ścieżki bezwzględnej ($GITHUB_WORKSPACE)
+      # 3. PRZYGOTOWANIE ŚRODOWISKA (Teraz pliki OpenWrt na pewno tam będą)
       - name: Prepare build environment
         env:
           OPENWRT_DIR: ${{ github.workspace }}/openwrt
@@ -164,18 +160,9 @@ jobs:
           DEVICE_DIR: devices/xiaomi_ax3600
         run: |
           set -euo pipefail
-          
-          # BEZPIECZNIK: Kopiujemy feeds.conf.default z docelowego katalogu OpenWrt bezpośrednio do miejsca,
-          # w którym skrypt prepare-build.sh aktualnie stoi i próbuje go wywołać.
-          if [ -f "${{ github.workspace }}/openwrt/feeds.conf.default" ]; then
-            cp "${{ github.workspace }}/openwrt/feeds.conf.default" .
-            echo "Successfully mirrored feeds.conf.default to current working directory."
-          fi
-          
-          # Uruchomienie skryptu budującego ze ścieżki bezwzględnej
           bash "${{ github.workspace }}/builder/scripts/prepare-build.sh"
 
-      # DYNAMICZNY BANNER
+      # 4. DYNAMICZNY BANNER Z IDEALNĄ SZEROKOŚCIĄ RAMKI
       - name: Dynamically update custom OpenWrt banner info
         working-directory: openwrt
         run: |
@@ -194,7 +181,7 @@ jobs:
             VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (${{ matrix.nss_version }})"
             DATE_LINE="Build time: $CURRENT_BUILD_TIME"
 
-            # SZTYWNA SZEROKOŚĆ DLA RAMKI EDMA-NSS (76 znaków łącznie):
+            # DOKŁADNE WYRÓWNANIE DLA RAMKI EDMA-NSS DO 76 ZNAKÓW
             VERSION_PADDING=$(printf '%-72s' "$VERSION_LINE")
             FINAL_VERSION_ROW=" | ${VERSION_PADDING}|"
 
@@ -213,7 +200,6 @@ jobs:
             FINAL_DATE_ROW=""
           fi
 
-          # Aktualizacja informacji dla panelu WWW (LuCI)
           TARGET_RELEASE_FILE="package/base-files/files/etc/openwrt_release"
           DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (${{ matrix.nss_version }} - NSS build by @Payti)"
           if [ -f "$TARGET_RELEASE_FILE" ]; then
@@ -229,14 +215,6 @@ jobs:
           echo "FINAL_VERSION_ROW:       ${FINAL_VERSION_ROW:-}"
           echo "FINAL_DATE_ROW:          ${FINAL_DATE_ROW:-}"
           echo "=================================================="
-
-      - name: Prepare build environment
-        env:
-          OPENWRT_DIR: ${{ github.workspace }}/openwrt
-          BUILDER_REPO: ${{ github.workspace }}/builder
-          VARIANT: ${{ matrix.variant }}
-          DEVICE: ${{ matrix.device }}
-        run: bash builder/scripts/prepare-build.sh
 
       - name: Set reproducible-build env
         working-directory: openwrt
