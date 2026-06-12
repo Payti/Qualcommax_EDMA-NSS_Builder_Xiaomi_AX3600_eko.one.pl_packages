@@ -260,54 +260,54 @@ jobs:
 
       - name: Publish release
         id: release
-        env:
-          VARIANT: ${{ matrix.variant }}
-          DEVICE: ${{ matrix.device }}
-          TARGET: ${{ matrix.target }}
-          RELEASE_PREFIX: ${{ matrix.release_prefix }}
-          UPSTREAM_REPO: ${{ matrix.upstream_repo }}
-          UPSTREAM_SHA: ${{ matrix.upstream_sha }}
-          NSS_SHA: ${{ matrix.nss_sha }}
         run: |
           set -euo pipefail
+          
+          # 1. Budowanie stabilnego tagu na sztywno przy użyciu zmiennej z macierzy
           date=$(date -u +%F)
           timestamp=$(date -u +%Y%m%dT%H%M%SZ)
-          tag_name="${RELEASE_PREFIX}-${timestamp}-${GITHUB_RUN_ID}"
+          
+          # Bezpieczny tag wyjściowy bez wiodących myślników
+          tag_name="edma-nss-build-${{ matrix.nss_version }}-${timestamp}-${GITHUB_RUN_ID}"
           echo "release_tag=$tag_name" >>"$GITHUB_OUTPUT"
-
+          
+          # 2. Generowanie notatek wydania na podstawie stałych danych
           {
-            echo "## OpenWrt Build — ${VARIANT}"
+            echo "## OpenWrt EDMA-NSS Build — ${{ matrix.nss_version }}"
             echo "- **Date**: $date"
-            echo "- **Variant**: \`${VARIANT}\`"
-            echo "- **Device**: \`${DEVICE}\`"
-            echo "- **Target**: \`${TARGET}\`"
-            echo "- **Upstream**: \`${UPSTREAM_REPO}@${UPSTREAM_SHA}\`"
-            if [[ -n "${NSS_SHA}" ]]; then
-              echo "- **NSS**: \`${NSS_SHA}\`"
-            fi
+            echo "- **Device**: \`xiaomi_ax3600\`"
+            echo "- **NSS FW Flavor**: \`${{ matrix.nss_version }}\`"
             echo "- **Trigger**: \`${GITHUB_EVENT_NAME}\`"
+            echo "- **Compiled by**: @Payti"
           } >release_notes.md
-
+          
+          # 3. Dynamiczne skanowanie artefaktów i zmiana nazw z poprawnym przedrostkiem z macierzy
           mapfile -t assets < <(find openwrt/bin/targets/qualcommax/ipq807x/ -type f -not -path "*/packages/*")
           
-          # Zmiana nazw plików binarnych przed wysłaniem na serwer
           for asset in "${assets[@]}"; do
             dir=$(dirname "$asset")
             base=$(basename "$asset")
-            mv "$asset" "$dir/${{ matrix.nss_version }}-$base"
+            # Zapobiegamy podwójnemu dodawaniu prefixu, jeśli skrypt wywołałby się ponownie
+            if [[ ! "$base" =~ ^edma-nss_ ]]; then
+              mv "$asset" "$dir/${{ matrix.nss_version }}-$base"
+            fi
           done
+          
+          # Ponowne zmapowanie zmienionych plików do przesłania
           mapfile -t renamed_assets < <(find openwrt/bin/targets/qualcommax/ipq807x/ -type f -not -path "*/packages/*")
-
+          
+          # 4. Tworzenie wydania na GitHubie przy użyciu gh release
           gh release create "$tag_name" \
             --repo "$GITHUB_REPOSITORY" \
             --title "OpenWrt EDMA-NSS Build $date (${{ matrix.nss_version }})" \
             --notes-file release_notes.md \
             "${renamed_assets[@]}"
-
+          
+          # 5. Podsumowanie do karty GitHub Summary
           {
-            echo "## Release (${VARIANT})"
+            echo "## Release (${{ matrix.nss_version }})"
             echo "- tag: \`${tag_name}\`"
-            echo "- assets: ${#assets[@]}"
+            echo "- assets: ${#renamed_assets[@]}"
           } >>"$GITHUB_STEP_SUMMARY"
 
   prune:
