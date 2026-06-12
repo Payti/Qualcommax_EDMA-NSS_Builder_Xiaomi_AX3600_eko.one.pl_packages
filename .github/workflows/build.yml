@@ -162,7 +162,7 @@ jobs:
           set -euo pipefail
           bash "${{ github.workspace }}/builder/scripts/prepare-build.sh"
 
-      # 4. DYNAMICZNY BANNER Z IDEALNĄ SZEROKOŚCIĄ RAMKI
+      # 4. DYNAMICZNY BANNER Z IDEALNĄ SZEROKOŚCIĄ RAMKI (78 ZNAKÓW)
       - name: Dynamically update custom OpenWrt banner info
         working-directory: openwrt
         run: |
@@ -181,11 +181,13 @@ jobs:
             VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (${{ matrix.nss_version }})"
             DATE_LINE="Build time: $CURRENT_BUILD_TIME"
 
-            # DOKŁADNE WYRÓWNANIE DLA RAMKI EDMA-NSS DO 76 ZNAKÓW
-            VERSION_PADDING=$(printf '%-72s' "$VERSION_LINE")
+            # PERFEKCYJNE WYRÓWNANIE DLA TABELI O DŁUGOŚCI 78 ZNAKÓW:
+            # " | " (3 znaki) + %-74s (74 znaki bufora) + "|" (1 joker) = Dokładnie 78 znaków.
+            
+            VERSION_PADDING=$(printf '%-74s' "$VERSION_LINE")
             FINAL_VERSION_ROW=" | ${VERSION_PADDING}|"
 
-            DATE_PADDING=$(printf '%-72s' "$DATE_LINE")
+            DATE_PADDING=$(printf '%-74s' "$DATE_LINE")
             FINAL_DATE_ROW=" | ${DATE_PADDING}|"
 
             sed -i "s#.*VERSION_PLACEHOLDER.*#$FINAL_VERSION_ROW#g" files/etc/banner
@@ -200,8 +202,9 @@ jobs:
             FINAL_DATE_ROW=""
           fi
 
+          # Aktualizacja informacji dla panelu WWW (LuCI) z poprawionym wpisem EDMA-NSS
           TARGET_RELEASE_FILE="package/base-files/files/etc/openwrt_release"
-          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (${{ matrix.nss_version }} - NSS build by @Payti)"
+          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (${{ matrix.nss_version }} - EDMA-NSS build by @Payti)"
           if [ -f "$TARGET_RELEASE_FILE" ]; then
             sed -i '/DISTRIB_DESCRIPTION=/d' "$TARGET_RELEASE_FILE" || true
             echo "DISTRIB_DESCRIPTION='${DISTRIB_DESCRIPTION}'" >> "$TARGET_RELEASE_FILE"
