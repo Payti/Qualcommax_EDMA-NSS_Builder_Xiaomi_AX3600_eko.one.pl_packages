@@ -154,15 +154,16 @@ jobs:
             exit 1
           fi
 
-      # NAPRAWIONY KROK: Uruchomienie z głównego katalogu (brak working-directory)
+      # NAPRAWIONY KROK: working-directory ustawione na openwrt, a ścieżka do kropki (.)
       - name: Prepare build environment
+        working-directory: openwrt
         env:
-          OPENWRT_DIR: ${{ github.workspace }}/openwrt
+          OPENWRT_DIR: .                         # <--- Kluczowa zmiana: skrypt pozostanie w tym samym folderze
           BUILDER_REPO: ${{ github.workspace }}/builder
           VARIANT: ${{ matrix.nss_version }}
           DEVICE: xiaomi_ax3600
           DEVICE_DIR: devices/xiaomi_ax3600
-        run: bash builder/scripts/prepare-build.sh
+        run: bash ../builder/scripts/prepare-build.sh
 
       # DYNAMICZNY BANNER
       - name: Dynamically update custom OpenWrt banner info
