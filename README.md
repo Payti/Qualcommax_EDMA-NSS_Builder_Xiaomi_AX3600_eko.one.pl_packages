@@ -22,7 +22,7 @@ A clean, opinionated GitHub Actions template for building OpenWrt firmware for Q
 | | `edma-nss` |
 |---|---|
 | **OpenWrt tree** | [`JuliusBairaktaris/openwrt-nss-edma`](https://github.com/JuliusBairaktaris/openwrt-nss-edma) @ `nss-edma-rework` (OpenWrt main + PR #22381 + the NSS integration series) |
-| **NSS packages** | [`JuliusBairaktaris/nss-packages`](https://github.com/JuliusBairaktaris/nss-packages) @ `edma-nss` (drv, ECM, qdisc/igs/pppoe clients, firmware 12.5, `sqm-scripts-nss`) |
+| **NSS packages** | [`JuliusBairaktaris/nss-packages`](https://github.com/JuliusBairaktaris/nss-packages) @ `edma-nss` (drv, ECM, qdisc/igs/pppoe clients, firmware 11.4 and 12.5, `sqm-scripts-nss`) |
 | **Ethernet** | the upstream `qca-edma` DSA driver, with the firmware data plane attached at runtime |
 | **Offload** | ECM NAT/PPPoE, NSS SQM (`nss-edma.qos`), ath11k NSS Wi-Fi offload (wifili) |
 | **Builds on** | schedule + push (auto, skipped while both source trees are unchanged) |
@@ -133,10 +133,14 @@ Enabled NSS modules: `kmod-qca-nss-drv` (+ the `kmod-qca-ppe-nss` glue), `kmod-q
 
 ### Flashing
 
-Grab the `*-sysupgrade.bin` from the newest `edma-nss-*` release ([Releases](https://github.com/JuliusBairaktaris/Qualcommax_NSS_Builder/releases)) and:
+Grab the `*-sysupgrade.bin` from the newest `edma-nss_*` release ([Releases](https://github.com/Payti/Qualcommax_EDMA-NSS_Builder_Xiaomi_AX3600_eko.one.pl_packages/releases)) and:
 
 ```sh
-sysupgrade -n /tmp/openwrt-qualcommax-ipq807x-xiaomi_ax3600-squashfs-sysupgrade.bin
+sysupgrade -n /tmp/edma-nss_11.4-openwrt-qualcommax-ipq807x-xiaomi_ax3600-squashfs-sysupgrade.bin
+```
+or
+```sh
+sysupgrade -n /tmp/edma-nss_12.5-openwrt-qualcommax-ipq807x-xiaomi_ax3600-squashfs-sysupgrade.bin
 ```
 
 Or via LuCI: **System → Backup / Flash Firmware**, upload, uncheck "Keep settings" for a first-time flash. Coming from stock Xiaomi? Install OpenWrt first via the [official guide](https://openwrt.org/toh/xiaomi/ax3600).
