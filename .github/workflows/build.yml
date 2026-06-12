@@ -76,7 +76,9 @@ jobs:
   build:
     name: Build firmware (${{ matrix.nss_version }})
     needs: [config, check-updates]
-    if: needs.check-updates.outputs.build_required == 'true'
+    if: |
+      always() &&
+      (github.event_name == 'workflow_dispatch' || needs.check-updates.outputs.build_required == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 360
     permissions:
