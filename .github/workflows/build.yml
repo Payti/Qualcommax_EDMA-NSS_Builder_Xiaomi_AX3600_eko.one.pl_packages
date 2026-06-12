@@ -125,29 +125,36 @@ jobs:
         with:
           path: builder
       
-      # MODYFIKACJA DLA PLIKU CONFIG.EDMA-NSS (Wprowadzone sztywne ścieżki dla Xiaomi AX3600)
+      # MODYFIKACJA DLA PLIKU CONFIG.EDMA-NSS + GENEROWANIE PLIKU DLA WARIANTU
       - name: Tweak config for selected NSS Firmware version
         run: |
           set -euo pipefail
-          CONFIG_FILE="builder/devices/xiaomi_ax3600/config.edma-nss"
-          if [ -f "$CONFIG_FILE" ]; then
-            # Usuwamy stare flagi wersji NSS, jeśli istniały
-            sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$CONFIG_FILE" || true
+          
+          BASE_CONFIG="builder/devices/xiaomi_ax3600/config.edma-nss"
+          # Ścieżka docelowa, jakiej szuka skrypt prepare-build.sh (np. config.edma-nss_11.4)
+          TARGET_CONFIG="builder/devices/xiaomi_ax3600/config.${{ matrix.nss_version }}"
+
+          if [ -f "$BASE_CONFIG" ]; then
+            # Skopiuj bazowy plik konfiguracyjny do nazwy z końcówką wariantu
+            cp "$BASE_CONFIG" "$TARGET_CONFIG"
+            
+            # Usuń stare flagi wersji NSS z nowego pliku wariantu
+            sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$TARGET_CONFIG" || true
             
             # Wstrzyknięcie odpowiedniej wersji na podstawie macierzy
             if [ "${{ matrix.nss_version }}" = "edma-nss_11.4" ]; then
-              echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=y" >> "$CONFIG_FILE"
-              echo "Successfully patched config.edma-nss with CONFIG_NSS_FIRMWARE_VERSION_11_4=y"
+              echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=y" >> "$TARGET_CONFIG"
+              echo "Successfully generated and patched $TARGET_CONFIG with CONFIG_NSS_FIRMWARE_VERSION_11_4=y"
             else
-              echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> "$CONFIG_FILE"
-              echo "Successfully patched config.edma-nss with CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
+              echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> "$TARGET_CONFIG"
+              echo "Successfully generated and patched $TARGET_CONFIG with CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
             fi
           else
-            echo "::error::Config file truly not found at $CONFIG_FILE"
+            echo "::error::Base config file truly not found at $BASE_CONFIG"
             exit 1
           fi
 
-      # NAPRAWIONY KROK: Przekazanie sztywnych wartości DEVICE bezpośrednio do środowiska
+      # KROK: Przygotowanie środowiska (teraz pliki fragmentów wariantu już istnieją!)
       - name: Prepare build environment
         env:
           OPENWRT_DIR: ${{ github.workspace }}/openwrt
@@ -157,7 +164,7 @@ jobs:
           DEVICE_DIR: devices/xiaomi_ax3600
         run: bash builder/scripts/prepare-build.sh
 
-      # DYNAMICZNY BANNER (Zabezpieczony przed pustym MAIN_SHA)
+      # DYNAMICZNY BANNER
       - name: Dynamically update custom OpenWrt banner info
         working-directory: openwrt
         run: |
