@@ -96,7 +96,7 @@ Each job has minimal `permissions`. The cron schedule is the only knob outside `
 
 ---
 
-# NSS Support Matrix
+## NSS Support Matrix
 
 | Feature   | IPQ807x | IPQ60xx | Feature         | IPQ807x | IPQ60xx |
 | --------- | :-----: | :-----: | --------------- | :-----: | :-----: |
