@@ -112,21 +112,26 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: builder
+          
       - name: Tweak config for selected NSS Firmware version
-        env:
-          DEVICE_DIR: ${{ matrix.device_dir }}
-          VARIANT: ${{ matrix.variant }}
         run: |
           set -euo pipefail
           
-          # Pracujemy bezpośrednio na pliku wariantu, który skrypt prepare-build.sh zaraz zepnie w całość
-          TARGET_CONFIG="builder/${DEVICE_DIR}/config.${VARIANT}"
+          # Pobieramy ścieżkę z macierzy, a jeśli jest pusta, podstawiamy domyślną dla Xiaomi AX3600
+          MATRIX_DIR="${{ matrix.device_dir }}"
+          REAL_DEVICE_DIR="${MATRIX_DIR:-devices/xiaomi_ax3600}"
+          CURRENT_VARIANT="${{ matrix.variant }}"
+          
+          # Budujemy pełną ścieżkę do pliku wariantu
+          TARGET_CONFIG="builder/${REAL_DEVICE_DIR}/config.${CURRENT_VARIANT}"
+
+          echo "[DEBUG] Sprawdzanie pliku konfiguracji: $TARGET_CONFIG"
 
           if [ -f "$TARGET_CONFIG" ]; then
             # Wyczyszczenie starych flag i wstrzyknięcie precyzyjnej wersji NSS
             sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$TARGET_CONFIG" || true
             
-            if [ "${VARIANT}" = "edma-nss_11.4" ]; then
+            if [ "${CURRENT_VARIANT}" = "edma-nss_11.4" ]; then
               echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=y" >> "$TARGET_CONFIG"
               echo "Successfully forced CONFIG_NSS_FIRMWARE_VERSION_11_4=y in $TARGET_CONFIG"
             else
