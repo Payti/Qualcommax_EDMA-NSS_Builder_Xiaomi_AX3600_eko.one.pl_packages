@@ -34,7 +34,7 @@ variants:
   # radios onto the wifili data path and starts ECM + SQM. A reboot always returns
   # to the stock host-only stack — that is the universal recovery path.
   # --------------------------------------------------------------------------------
-  - id: edma-nss
+  - id: edma-nss_12.5
     upstream:
       repo: JuliusBairaktaris/openwrt-nss-edma
       ref: nss-edma-rework
@@ -47,6 +47,23 @@ variants:
       - name: nss
         url: https://github.com/JuliusBairaktaris/nss-packages.git;edma-nss
       - name: obsy
-        url: https://github.com/obsy/packages          
+        url: https://github.com/obsy/packages
     release:
-      prefix: edma-nss                    # tag = <prefix>-<UTC timestamp>-<run id>
+      prefix: edma-nss_12.5               # tag = <prefix>-<UTC timestamp>-<run id>
+
+  - id: edma-nss_11.4
+    upstream:
+      repo: JuliusBairaktaris/openwrt-nss-edma
+      ref: nss-edma-rework
+    nss_packages:                         # NSS packages tree (tracked so package-only updates trigger a build)
+      repo: JuliusBairaktaris/nss-packages
+      ref: edma-nss
+    target: qualcommax/ipq807x            # bin/targets/<target>/ — also parameterizes the artifact path
+    device: xiaomi_ax3600                 # selects devices/<id>/ (config + config.edma-nss + files*/)
+    feeds:                                # appended to feeds.conf as `src-git <name> <url>`
+      - name: nss
+        url: https://github.com/JuliusBairaktaris/nss-packages.git;edma-nss
+      - name: obsy
+        url: https://github.com/obsy/packages
+    release:
+      prefix: edma-nss_11.4               # tag = <prefix>-<UTC timestamp>-<run id>
