@@ -74,11 +74,11 @@ jobs:
         run: bash scripts/check-updates.sh
 
   build:
-    name: Build firmware (${{ matrix.nss_version }})
+    name: Build ${{ matrix.variant }} (${{ matrix.device }})
     needs: [config, check-updates]
     if: |
       always() &&
-      (github.event_name == 'workflow_dispatch' || needs.check-updates.outputs.build_required == 'true')
+      (github.event_name == 'workflow_dispatch' || needs.check-updates.outputs.has_builds == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 360
     permissions:
@@ -86,19 +86,11 @@ jobs:
       actions: read
     
     strategy:
-      matrix:
-        nss_version: [edma-nss_12.5, edma-nss_11.4]
       fail-fast: false
-
+      matrix: ${{ fromJSON(needs.check-updates.outputs.matrix) }}
+    
     env:
       GH_TOKEN: ${{ github.token }}
-      MAIN_SHA: ${{ needs.check-updates.outputs.main_sha }}
-      NSS_SHA: ${{ needs.check-updates.outputs.nss_sha }}
-      DEVICE: ${{ needs.config.outputs.device }}
-      DEVICE_DIR: ${{ needs.config.outputs.device_dir }}
-      RELEASE_PREFIX: ${{ needs.config.outputs.release_prefix }}-${{ matrix.nss_version }}
-      ARTIFACT_RETENTION_DAYS: ${{ needs.config.outputs.artifact_retention_days }}
-      FEEDS_LINES: ${{ needs.config.outputs.feeds_lines }}
 
     steps:
       - name: Install build dependencies
@@ -111,8 +103,8 @@ jobs:
       - name: Checkout OpenWrt source
         uses: actions/checkout@v6
         with:
-          repository: ${{ needs.config.outputs.upstream_repo || 'openwrt/openwrt' }}
-          ref: ${{ env.MAIN_SHA || 'main' }}
+          repository: ${{ matrix.upstream_repo }}
+          ref: ${{ matrix.upstream_sha }}
           fetch-depth: 0
           path: openwrt
 
@@ -120,24 +112,21 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: builder
-          
       - name: Tweak config for selected NSS Firmware version
+        env:
+          DEVICE_DIR: ${{ matrix.device_dir }}
+          VARIANT: ${{ matrix.variant }}
         run: |
           set -euo pipefail
           
-          # Bezpieczne parsowanie ignorujące komentarze po znaku #
-          DEVICE_DIR=$(bash builder/scripts/load-config.sh --get-device-dir 2>/dev/null || grep "device_dir:" builder/builder.yml | head -n1 | cut -d'#' -f1 | tr -d ' ' | cut -d':' -f2 | tr -d '"'\'')
-          # Jeśli DEVICE_DIR nadal wyjdzie puste, użyj domyślnej bezpiecznej ścieżki
-          DEVICE_DIR="${DEVICE_DIR:-devices/xiaomi_ax3600}"
-          
           BASE_CONFIG="builder/${DEVICE_DIR}/config.edma-nss"
-          TARGET_CONFIG="builder/${DEVICE_DIR}/config.${{ matrix.nss_version }}"
+          TARGET_CONFIG="builder/${DEVICE_DIR}/config.${VARIANT}"
 
           if [ -f "$BASE_CONFIG" ]; then
             cp "$BASE_CONFIG" "$TARGET_CONFIG"
             sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$TARGET_CONFIG" || true
             
-            if [ "${{ matrix.nss_version }}" = "edma-nss_11.4" ]; then
+            if [ "${VARIANT}" = "edma-nss_11.4" ]; then
               echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=y" >> "$TARGET_CONFIG"
               echo "Successfully generated and patched $TARGET_CONFIG with CONFIG_NSS_FIRMWARE_VERSION_11_4=y"
             else
@@ -150,22 +139,12 @@ jobs:
           fi
 
       - name: Prepare build environment
-        run: |
-          set -euo pipefail
-          
-          # Dodano odcinanie komentarzy za pomocą cut -d'#' -f1
-          export DEVICE=$(grep "device:" builder/builder.yml | head -n1 | cut -d'#' -f1 | tr -d ' ' | cut -d':' -f2 | tr -d '"'\'')
-          export DEVICE_DIR=$(grep "device_dir:" builder/builder.yml | head -n1 | cut -d'#' -f1 | tr -d ' ' | cut -d':' -f2 | tr -d '"'\'')
-          export VARIANT="${{ matrix.nss_version }}"
-          export OPENWRT_DIR="${{ github.workspace }}/openwrt"
-          export BUILDER_REPO="${{ github.workspace }}/builder"
-          
-          echo "[DEBUG] Wykryte zmiennes z builder.yml:"
-          echo "DEVICE: $DEVICE"
-          echo "DEVICE_DIR: $DEVICE_DIR"
-          echo "VARIANT: $VARIANT"
-          
-          bash "$BUILDER_REPO/scripts/prepare-build.sh"
+        env:
+          OPENWRT_DIR: ${{ github.workspace }}/openwrt
+          BUILDER_REPO: ${{ github.workspace }}/builder
+          VARIANT: ${{ matrix.variant }}
+          DEVICE: ${{ matrix.device }}
+        run: bash builder/scripts/prepare-build.sh
 
       - name: Dynamically update custom OpenWrt banner info
         working-directory: openwrt
@@ -182,9 +161,12 @@ jobs:
           CURRENT_BUILD_TIME=$(date -u +"%Y-%m-%d %H:%M UTC")
 
           if [ -f files/etc/banner ]; then
-            VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (${{ matrix.nss_version }})"
+            VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (${{ matrix.variant }})"
             DATE_LINE="Build time: $CURRENT_BUILD_TIME"
 
+            # PERFEKCYJNE WYRÓWNANIE DLA TABELI O DŁUGOŚCI 78 ZNAKÓW:
+            # " | " (3 znaki) + %-74s (74 znaki bufora) + "|" (1 znak) = Dokładnie 78 znaków.
+            
             VERSION_PADDING=$(printf '%-74s' "$VERSION_LINE")
             FINAL_VERSION_ROW=" | ${VERSION_PADDING}|"
 
@@ -204,7 +186,7 @@ jobs:
           fi
 
           TARGET_RELEASE_FILE="package/base-files/files/etc/openwrt_release"
-          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (${{ matrix.nss_version }} - EDMA-NSS build by @Payti)"
+          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (${{ matrix.variant }} - EDMA-NSS build by @Payti)"
           if [ -f "$TARGET_RELEASE_FILE" ]; then
             sed -i '/DISTRIB_DESCRIPTION=/d' "$TARGET_RELEASE_FILE" || true
             echo "DISTRIB_DESCRIPTION='${DISTRIB_DESCRIPTION}'" >> "$TARGET_RELEASE_FILE"
@@ -253,59 +235,62 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: xiaomi_ax3600-${{ matrix.nss_version }}-images
-          path: openwrt/bin/targets/qualcommax/ipq807x
+          name: ${{ matrix.variant }}-${{ matrix.device }}-images
+          path: openwrt/bin/targets/${{ matrix.target }}
           if-no-files-found: error
-          retention-days: 7
+          retention-days: ${{ needs.config.outputs.artifact_retention_days }}
 
       - name: Publish release
         id: release
+        env:
+          VARIANT: ${{ matrix.variant }}
+          DEVICE: ${{ matrix.device }}
+          TARGET: ${{ matrix.target }}
+          RELEASE_PREFIX: ${{ matrix.release_prefix }}
+          UPSTREAM_REPO: ${{ matrix.upstream_repo }}
+          UPSTREAM_SHA: ${{ matrix.upstream_sha }}
+          NSS_SHA: ${{ matrix.nss_sha }}
         run: |
           set -euo pipefail
-          
           date=$(date -u +%F)
           timestamp=$(date -u +%Y%m%dT%H%M%SZ)
-          
-          tag_name="edma-nss-build-${{ matrix.nss_version }}-${timestamp}-${GITHUB_RUN_ID}"
+          tag_name="${RELEASE_PREFIX}-${timestamp}-${GITHUB_RUN_ID}"
           echo "release_tag=$tag_name" >>"$GITHUB_OUTPUT"
-          
-          # Poprawione parsowanie urządzenia w notatkach wydania
-          DETECTED_DEVICE=$(grep "device:" builder/builder.yml | head -n1 | cut -d'#' -f1 | tr -d ' ' | cut -d':' -f2 | tr -d '"'\'')
-          
-          REAL_MAIN_SHA=$(cd openwrt && git rev-parse HEAD)
-          REAL_NSS_SHA=$(cd builder && git rev-parse HEAD)
 
           {
-            echo "## OpenWrt EDMA-NSS Build — ${{ matrix.nss_version }}"
+            echo "## OpenWrt Build — ${VARIANT}"
             echo "- **Date**: $date"
-            echo "- **Device**: \`${DETECTED_DEVICE:-unknown}\`"
-            echo "- **NSS FW Flavor**: \`${{ matrix.nss_version }}\`"
-            echo "- **Upstream**: \`${REAL_MAIN_SHA}\`"
-            echo "- **NSS**: \`${REAL_NSS_SHA}\`"
+            echo "- **Variant**: \`${VARIANT}\`"
+            echo "- **Device**: \`${DEVICE}\`"
+            echo "- **Target**: \`${TARGET}\`"
+            echo "- **Upstream**: \`${UPSTREAM_REPO}@${UPSTREAM_SHA}\`"
+            if [[ -n "${NSS_SHA}" ]]; then
+              echo "- **NSS**: \`${NSS_SHA}\`"
+            fi
             echo "- **Trigger**: \`${GITHUB_EVENT_NAME}\`"
             echo "- **Compiled by**: @Payti"
           } >release_notes.md
-          
-          mapfile -t assets < <(find openwrt/bin/targets/qualcommax/ipq807x/ -type f -not -path "*/packages/*")
+
+          mapfile -t assets < <(find "openwrt/bin/targets/${TARGET}/" -type f -not -path "*/packages/*")
           
           for asset in "${assets[@]}"; do
             dir=$(dirname "$asset")
             base=$(basename "$asset")
             if [[ ! "$base" =~ ^edma-nss_ ]]; then
-              mv "$asset" "$dir/${{ matrix.nss_version }}-$base"
+              mv "$asset" "$dir/${VARIANT}-$base"
             fi
           done
           
-          mapfile -t renamed_assets < <(find openwrt/bin/targets/qualcommax/ipq807x/ -type f -not -path "*/packages/*")
-          
+          mapfile -t renamed_assets < <(find "openwrt/bin/targets/${TARGET}/" -type f -not -path "*/packages/*")
+
           gh release create "$tag_name" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "OpenWrt EDMA-NSS Build $date (${{ matrix.nss_version }})" \
+            --title "OpenWrt ${VARIANT} $date" \
             --notes-file release_notes.md \
             "${renamed_assets[@]}"
-          
+
           {
-            echo "## Release (${{ matrix.nss_version }})"
+            echo "## Release (${VARIANT})"
             echo "- tag: \`${tag_name}\`"
             echo "- assets: ${#renamed_assets[@]}"
           } >>"$GITHUB_STEP_SUMMARY"
@@ -314,24 +299,22 @@ jobs:
     name: Prune old releases
     needs: [config, build]
     runs-on: ubuntu-latest
-    if: always()
     timeout-minutes: 5
     permissions:
       contents: write
     env:
       GH_TOKEN: ${{ github.token }}
       REPO: ${{ github.repository }}
-      KEEP: ${{ needs.config.outputs.release_keep || 5 }}
+      KEEP: ${{ needs.config.outputs.release_keep }}
       PREFIXES: ${{ needs.config.outputs.prefixes }}
     steps:
       - uses: actions/checkout@v6
       - name: Prune each variant prefix
         run: |
           set -euo pipefail
-          CURRENT_PREFIXES="${PREFIXES:-edma-nss_11.4 edma-nss_12.5}"
           while IFS= read -r prefix; do
             [[ -z "$prefix" ]] && continue
             echo "::group::prune $prefix"
-            PREFIX="$prefix" bash scripts/prune-releases.sh || true
+            PREFIX="$prefix" bash scripts/prune-releases.sh
             echo "::endgroup::"
-          done <<< "$CURRENT_PREFIXES"
+          done <<< "$PREFIXES"
