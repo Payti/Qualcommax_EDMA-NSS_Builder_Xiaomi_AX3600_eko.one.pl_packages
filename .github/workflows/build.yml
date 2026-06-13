@@ -271,12 +271,18 @@ jobs:
           tag_name="edma-nss-build-${{ matrix.nss_version }}-${timestamp}-${GITHUB_RUN_ID}"
           echo "release_tag=$tag_name" >>"$GITHUB_OUTPUT"
           
-          # 2. Generowanie notatek wydania na podstawie stałych danych
+          # Dynamiczne wyciągnięcie faktycznych hashy prosto z repozytoriów Git jako fallback dla pustych env
+          REAL_MAIN_SHA=$(cd openwrt && git rev-parse HEAD)
+          REAL_NSS_SHA=$(cd builder && git rev-parse HEAD)
+
+          # 2. Generowanie notatek wydania z dodanymi liniami Upstream oraz NSS
           {
             echo "## OpenWrt EDMA-NSS Build — ${{ matrix.nss_version }}"
             echo "- **Date**: $date"
             echo "- **Device**: \`xiaomi_ax3600\`"
             echo "- **NSS FW Flavor**: \`${{ matrix.nss_version }}\`"
+            echo "- **Upstream**: \`${REAL_MAIN_SHA}\`"
+            echo "- **NSS**: \`${REAL_NSS_SHA}\`"
             echo "- **Trigger**: \`${GITHUB_EVENT_NAME}\`"
             echo "- **Compiled by**: @Payti"
           } >release_notes.md
