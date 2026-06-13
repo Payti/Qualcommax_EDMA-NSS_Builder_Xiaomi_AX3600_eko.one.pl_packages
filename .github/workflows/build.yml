@@ -119,22 +119,22 @@ jobs:
         run: |
           set -euo pipefail
           
-          BASE_CONFIG="builder/${DEVICE_DIR}/config.edma-nss"
+          # Pracujemy bezpośrednio na pliku wariantu, który skrypt prepare-build.sh zaraz zepnie w całość
           TARGET_CONFIG="builder/${DEVICE_DIR}/config.${VARIANT}"
 
-          if [ -f "$BASE_CONFIG" ]; then
-            cp "$BASE_CONFIG" "$TARGET_CONFIG"
+          if [ -f "$TARGET_CONFIG" ]; then
+            # Wyczyszczenie starych flag i wstrzyknięcie precyzyjnej wersji NSS
             sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$TARGET_CONFIG" || true
             
             if [ "${VARIANT}" = "edma-nss_11.4" ]; then
               echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=y" >> "$TARGET_CONFIG"
-              echo "Successfully generated and patched $TARGET_CONFIG with CONFIG_NSS_FIRMWARE_VERSION_11_4=y"
+              echo "Successfully forced CONFIG_NSS_FIRMWARE_VERSION_11_4=y in $TARGET_CONFIG"
             else
               echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> "$TARGET_CONFIG"
-              echo "Successfully generated and patched $TARGET_CONFIG with CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
+              echo "Successfully forced CONFIG_NSS_FIRMWARE_VERSION_12_5=y in $TARGET_CONFIG"
             fi
           else
-            echo "::error::Base config file truly not found at $BASE_CONFIG"
+            echo "::error::Variant fragment configuration file not found at $TARGET_CONFIG"
             exit 1
           fi
 
@@ -165,8 +165,6 @@ jobs:
             DATE_LINE="Build time: $CURRENT_BUILD_TIME"
 
             # PERFEKCYJNE WYRÓWNANIE DLA TABELI O DŁUGOŚCI 78 ZNAKÓW:
-            # " | " (3 znaki) + %-74s (74 znaki bufora) + "|" (1 znak) = Dokładnie 78 znaków.
-            
             VERSION_PADDING=$(printf '%-74s' "$VERSION_LINE")
             FINAL_VERSION_ROW=" | ${VERSION_PADDING}|"
 
