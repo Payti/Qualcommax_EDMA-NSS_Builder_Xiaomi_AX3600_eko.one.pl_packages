@@ -22,7 +22,7 @@ A clean, opinionated GitHub Actions template for building OpenWrt firmware for Q
 | | `edma-nss` |
 |---|---|
 | **OpenWrt tree** | [`JuliusBairaktaris/openwrt-nss-edma`](https://github.com/JuliusBairaktaris/openwrt-nss-edma) @ `nss-edma-rework` (OpenWrt main + PR #22381 + the NSS integration series) |
-| **NSS packages** | [`JuliusBairaktaris/nss-packages`](https://github.com/JuliusBairaktaris/nss-packages) @ `edma-nss` (drv, ECM, qdisc/igs/pppoe clients, firmware NSS 11.4 and 12.5, `sqm-scripts-nss`) |
+| **NSS packages** | [`JuliusBairaktaris/nss-packages`](https://github.com/JuliusBairaktaris/nss-packages) @ `edma-nss` (drv, ECM, qdisc/igs/pppoe clients, firmware NSS 12.5, `sqm-scripts-nss`) |
 | **Ethernet** | the upstream `qca-edma` DSA driver, with the firmware data plane attached at runtime |
 | **Offload** | ECM NAT/PPPoE, NSS SQM (`nss-edma.qos`), ath11k NSS Wi-Fi offload (wifili) |
 | **Builds on** | schedule + push (auto, skipped while both source trees are unchanged) |
