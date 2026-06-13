@@ -163,10 +163,6 @@ Enabled NSS modules: `kmod-qca-nss-drv` (+ the `kmod-qca-ppe-nss` glue), `kmod-q
 Grab the `*-sysupgrade.bin` from the newest `edma-nss_*` release ([Releases](https://github.com/Payti/Qualcommax_EDMA-NSS_Builder_Xiaomi_AX3600_eko.one.pl_packages/releases)) and:
 
 ```sh
-sysupgrade -n /tmp/edma-nss_11.4-openwrt-qualcommax-ipq807x-xiaomi_ax3600-squashfs-sysupgrade.bin
-```
-or
-```sh
 sysupgrade -n /tmp/edma-nss_12.5-openwrt-qualcommax-ipq807x-xiaomi_ax3600-squashfs-sysupgrade.bin
 ```
 
