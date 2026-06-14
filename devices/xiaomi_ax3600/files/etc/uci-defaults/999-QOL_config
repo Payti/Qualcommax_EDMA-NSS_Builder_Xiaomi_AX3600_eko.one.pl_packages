@@ -11,7 +11,7 @@ set wireless.default_radio0.ocv='1'
 # Wireless radio0 specific settings
 set wireless.radio0.htmode='HE160'
 set wireless.radio0.channel='36'
-set wireless.radio0.country='DE'
+set wireless.radio0.country='PL'
 
 # Wireless default settings for radio1
 set wireless.default_radio1.wnm_sleep_mode='1'
@@ -24,7 +24,7 @@ set wireless.default_radio1.ocv='1'
 # Wireless radio1 specific settings
 set wireless.radio1.htmode='HE40'
 set wireless.radio1.channel='1'
-set wireless.radio1.country='DE'
+set wireless.radio1.country='PL'
 
 # Firewall settings
 set firewall.@zone[1].input='DROP'
@@ -36,7 +36,7 @@ set bcp38.cfg018e45.enabled='1'
 set bcp38.cfg018e45.interface='wan'
 
 # uHTTPd settings
-set uhttpd.main.redirect_https='1'
+set uhttpd.main.redirect_https='0'
 
 # OpenSSL OQS provider
 set openssl.oqsprovider=provider
