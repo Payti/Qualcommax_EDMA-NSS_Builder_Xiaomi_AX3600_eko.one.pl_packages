@@ -20,7 +20,6 @@ release:
   artifact_retention_days: 7    # GitHub Actions artifact retention (separate from the release)
 
 # Build variants. Add, remove, or retarget freely — the pipeline is a matrix over this list.
-variants:
   # --------------------------------------------------------------------------------
   # NSS offload on the upstream EDMA stack: openwrt-nss-edma + nss-packages.
   #
