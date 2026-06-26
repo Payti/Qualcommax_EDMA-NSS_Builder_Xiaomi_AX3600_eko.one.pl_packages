@@ -243,6 +243,32 @@ jobs:
           if-no-files-found: error
           retention-days: ${{ needs.config.outputs.artifact_retention_days }}
 
+      - name: Generate checksums
+        working-directory: openwrt
+        run: |
+          cd bin/targets/qualcommax/ipq807x/
+
+          # Czyścimy stare pliki sum, żeby nie liczyć skrótów z samych siebie
+          rm -f md5sums sha256sums
+
+          echo "### Generowanie sum kontrolnych dla obrazów i zawartości 'packages' ###"
+          # Szukamy tylko rzeczywistych plików (-type f), ignorując katalogi jako obiekty
+          find . -type f -print0 | xargs -0 md5sum > md5sums
+          find . -type f -print0 | xargs -0 sha256sum > sha256sums
+
+          echo "-> Sumy kontrolne zostały pomyślnie wygenerowane."
+
+      - name: Pack APK Packages
+        working-directory: openwrt
+        run: |
+          echo "### Pakowanie skompilowanych pakietów .apk ###"
+          if [ -d "bin/packages" ]; then
+            tar -czf bin/targets/qualcommax/ipq807x/compiled_packages.tar.gz -C bin packages
+            echo "-> Pakiety zostały pomyślnie spakowane do compiled_packages.tar.gz"
+          else
+            echo "-> OSTRZEŻENIE: Nie znaleziono katalogu bin/packages!"
+          fi
+
       - name: Publish release
         id: release
         env:
