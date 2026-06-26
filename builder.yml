@@ -20,19 +20,20 @@ release:
   artifact_retention_days: 7    # GitHub Actions artifact retention (separate from the release)
 
 # Build variants. Add, remove, or retarget freely — the pipeline is a matrix over this list.
-  # --------------------------------------------------------------------------------
-  # NSS offload on the upstream EDMA stack: openwrt-nss-edma + nss-packages.
-  #
-  # Qualcomm NSS hardware offloading (ECM NAT/PPPoE, NSS SQM, ath11k Wi-Fi offload)
-  # running on OpenWrt main's upstream qca-edma/qca-ppe DSA ethernet drivers
-  # (openwrt/openwrt#22381) — not on the vendor qca-nss-dp/qca-ssdk pairing.
-  # Architecture and operation: https://github.com/JuliusBairaktaris/openwrt-nss-edma/wiki
-  #
-  # The image boots on the plain host stack (Wi-Fi in host mode); /usr/sbin/nss-up
-  # (run from rc.local) arms the NSS data plane, boots the firmware, moves the
-  # radios onto the wifili data path and starts ECM + SQM. A reboot always returns
-  # to the stock host-only stack — that is the universal recovery path.
-  # --------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
+# NSS offload on the upstream EDMA stack: openwrt-nss-edma + nss-packages.
+#
+# Qualcomm NSS hardware offloading (ECM NAT/PPPoE, NSS SQM, ath11k Wi-Fi offload)
+# running on OpenWrt main's upstream qca-edma/qca-ppe DSA ethernet drivers
+# (openwrt/openwrt#22381) — not on the vendor qca-nss-dp/qca-ssdk pairing.
+# Architecture and operation: https://github.com/JuliusBairaktaris/openwrt-nss-edma/wiki
+#
+# The image boots on the plain host stack (Wi-Fi in host mode); /usr/sbin/nss-up
+# (run from rc.local) arms the NSS data plane, boots the firmware, moves the
+# radios onto the wifili data path and starts ECM + SQM. A reboot always returns
+# to the stock host-only stack — that is the universal recovery path.
+# --------------------------------------------------------------------------------
+
 variants:
   - id: edma-nss_12.5
     upstream:
