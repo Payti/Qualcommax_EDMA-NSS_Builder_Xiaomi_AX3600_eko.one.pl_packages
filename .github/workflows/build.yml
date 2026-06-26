@@ -84,11 +84,11 @@ jobs:
     permissions:
       contents: write
       actions: read
-    
+
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.check-updates.outputs.matrix) }}
-    
+
     env:
       GH_TOKEN: ${{ github.token }}
 
@@ -112,16 +112,16 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: builder
-          
+
       - name: Tweak config for selected NSS Firmware version
         run: |
           set -euo pipefail
-          
+
           # Pobieramy ścieżkę z macierzy, a jeśli jest pusta, podstawiamy domyślną dla Xiaomi AX3600
           MATRIX_DIR="${{ matrix.device_dir }}"
           REAL_DEVICE_DIR="${MATRIX_DIR:-devices/xiaomi_ax3600}"
           CURRENT_VARIANT="${{ matrix.variant }}"
-          
+
           # Budujemy pełną ścieżkę do pliku wariantu
           TARGET_CONFIG="builder/${REAL_DEVICE_DIR}/config.${CURRENT_VARIANT}"
 
@@ -130,7 +130,7 @@ jobs:
           if [ -f "$TARGET_CONFIG" ]; then
             # Wyczyszczenie starych flag i wstrzyknięcie precyzyjnej wersji NSS
             sed -i '/CONFIG_NSS_FIRMWARE_VERSION_/d' "$TARGET_CONFIG" || true
-            
+
             if [ "${CURRENT_VARIANT}" = "edma-nss_11.4" ]; then
               echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=y" >> "$TARGET_CONFIG"
               echo "Successfully forced CONFIG_NSS_FIRMWARE_VERSION_11_4=y in $TARGET_CONFIG"
@@ -301,7 +301,7 @@ jobs:
           } >release_notes.md
 
           mapfile -t assets < <(find "openwrt/bin/targets/${TARGET}/" -type f -not -path "*/packages/*")
-          
+
           for asset in "${assets[@]}"; do
             dir=$(dirname "$asset")
             base=$(basename "$asset")
@@ -309,7 +309,7 @@ jobs:
               mv "$asset" "$dir/${VARIANT}-$base"
             fi
           done
-          
+
           mapfile -t renamed_assets < <(find "openwrt/bin/targets/${TARGET}/" -type f -not -path "*/packages/*")
 
           gh release create "$tag_name" \
