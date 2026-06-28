@@ -100,6 +100,12 @@ jobs:
           sudo apt-get install -y \
             bzip2 g++ gawk gcc git glibc-source libncurses-dev make rsync
 
+      - name: Start tmate session in background for SSH terminal login
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          detach: true
+
       - name: Checkout OpenWrt source
         uses: actions/checkout@v6
         with:
