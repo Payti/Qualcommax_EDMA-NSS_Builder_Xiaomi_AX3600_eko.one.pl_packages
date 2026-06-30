@@ -31,7 +31,7 @@ CONFIG_TARGET_OPTIONS=y
 CONFIG_TOOLCHAINOPTS=y
 CONFIG_USE_GC_SECTIONS=y
 CONFIG_USE_LTO=y
-# CONFIG_USE_MKLIBS is not set
+CONFIG_USE_MKLIBS=y
 CONFIG_USE_MOLD=y
 CONFIG_ZLIB_OPTIMIZE_SPEED=y
 CONFIG_ZSTD_OPTIMIZE_O3=y
@@ -66,6 +66,9 @@ CONFIG_LIBCURL_OPENSSL=n
 ## Redundant Default Packages
 CONFIG_PACKAGE_kmod-usb-core=y
 CONFIG_PACKAGE_kmod-usb-xhci-hcd=y
+CONFIG_PACKAGE_kmod-phy-aquantia=n
+CONFIG_PACKAGE_luci-app-attendedsysupgrade=n
+CONFIG_PACKAGE_attendedsysupgrade-common=n
 
 # Disable unnecessary debugging for Wi-Fi driver.
 CONFIG_ATH11K_DEBUGFS_HTT_STATS=n
@@ -77,7 +80,6 @@ CONFIG_ATH11K_THERMAL=n
 #
 ## eko.one.pl packages
 #
-#CONFIG_PACKAGE_attendedsysupgrade-common=y
 CONFIG_PACKAGE_ekooneplconfigs=y
 CONFIG_PACKAGE_ekooneplstat=y
 CONFIG_PACKAGE_ekooneplusb=m

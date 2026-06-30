@@ -1,11 +1,13 @@
 #!/bin/sh
-# Bring up the FULL NSS stack (M5): fw data plane + ath11k Wi-Fi offload +
-# ECM offload + PPPoE connmgr + SQM. Run after boot; reboot to undo.
+# Bring up the full NSS data plane: firmware + ath11k Wi-Fi offload + ECM
+# connection offload + PPPoE connection manager + SQM. Run after boot; a reboot
+# returns the device to the plain host stack.
 #
-# M5 boot model: ath11k carries symbol deps on qca-nss-drv, so kmodloader
-# loads drv at boot, but its probe is DEFERRED by the qca-ppe-nss gate.
-# Writing fw_mask boots the firmware synchronously (the glue re-attaches
-# the deferred core devices inside the write).
+# Boot model: ath11k carries symbol dependencies on qca-nss-drv, so the module
+# loader brings qca-nss-drv in at boot - but its probe is deferred by the
+# qca-ppe-nss gate until the data plane is armed. Writing fw_mask boots the
+# firmware synchronously (the glue re-attaches the deferred core devices inside
+# the write), so loading the modules at boot never boots the firmware unarmed.
 set -e
 FWM=/sys/kernel/debug/qca-ppe-nss/fw_mask
 modprobe qca-ppe-nss 2>/dev/null || true
@@ -17,25 +19,26 @@ echo 0x3c > $FWM
 sleep 8
 grep -E "if_num [2-5]:" /sys/kernel/debug/qca-ppe-nss/status
 
-# The firmware data plane is armed (the critical section above is guarded with
-# explicit '|| { ...; exit 1; }'). Everything from here on - bridge-mgr, qca-mcs,
-# ECM, pppoe, the Wi-Fi flip, WAN, SQM - is OPT-IN and best-effort: a failure
-# must NOT abort the script and leave the fw armed without ECM. In particular ECM
-# hard-depends on qca-mcs (ECM_MULTICAST_ENABLE), so 'modprobe ecm' can fail if
-# qca-mcs is missing/broken - don't let that take down the rest of the plane.
+# The firmware data plane is armed (the critical section above exits on
+# failure). Everything below - bridge-mgr, qca-mcs, ECM, PPPoE, the Wi-Fi flip,
+# WAN, SQM - is best-effort: a failure here must not abort the script and leave
+# the firmware armed without ECM. ECM hard-depends on qca-mcs
+# (ECM_MULTICAST_ENABLE), so 'modprobe ecm' can fail if qca-mcs is missing -
+# don't let that take down the rest of the plane.
 set +e
 
 # bridge-mgr: offload Linux-bridge L2 forwarding into the firmware. Load after
-# the fw data plane is up (ports armed) and before ECM, so the firmware bridge
+# the data plane is up (ports armed) and before ECM, so the firmware bridge
 # interface exists when ECM classifies bridged flows. On load it walks the
-# existing bridge's members and joins the qca_ppe (wired) ports; Wi-Fi members
-# are skipped until they are NSS interfaces.
+# existing bridge's members and joins the wired (qca_ppe) ports; Wi-Fi members
+# are skipped until they become NSS interfaces.
 modprobe qca-nss-bridge-mgr 2>/dev/null || true
 
-# qca-mcs: IGMP/MLD bridge snooping + the membership source the ECM multicast
-# classifier reads. Load before ECM so the classifier binds qca-mcs's hooks;
-# this is what lets snooped multicast groups be replicated in PPE hardware
-# instead of host-flooded to every bridge port.
+# qca-mcs: IGMP/MLD membership snooping. ECM's bridged-multicast classifier
+# links against its hooks (mc_bridge_ipv4_get_if etc.), so it must load before
+# ECM for symbol resolution. Same-subnet multicast is hardware-bridged by the
+# kernel bridge IGMP snoop -> switchdev MDB -> qca_ppe, independent of qca-mcs's
+# own replication path (which stays inert here - nothing enables it).
 modprobe qca-mcs 2>/dev/null || true
 
 sysctl -w net.netfilter.nf_conntrack_events=1
@@ -45,10 +48,10 @@ sleep 2
 echo 1 > /sys/kernel/debug/ecm/ecm_classifier_default/accel_delay_pkts
 modprobe qca-nss-pppoe
 
-# M5: Wi-Fi offload. Flip nss_offload and rebind the radio so ath11k
-# re-registers against the NSS data path (wifili); pbuf re-applies the
-# 512MB n2h pool tuning and runs `wifi up`. If the radios fail to
-# register, fall back to host-mode Wi-Fi (the recovery/escape path).
+# Wi-Fi offload: flip nss_offload and rebind the radio so ath11k re-registers
+# against the NSS data path (wifili); pbuf re-applies the 512MB n2h pool tuning
+# and runs `wifi up`. If the radios fail to register, fall back to host-mode
+# Wi-Fi (the recovery/escape path).
 if [ -w /sys/module/ath11k/parameters/nss_offload ]; then
   wifi down   # tear down hostapd ifaces first (pending-ack WARN at unbind otherwise)
   sleep 3
@@ -68,17 +71,14 @@ if [ -w /sys/module/ath11k/parameters/nss_offload ]; then
   /etc/init.d/qca-nss-pbuf start
 fi
 
-# WAN + SQM bring-up is best-effort with retries (set +e is already in effect
-# from just after the firmware-arm critical section above).
-
+# WAN + SQM bring-up is best-effort with retries (set +e is in effect).
 ifup wan
 
 # Wait for the PPPoE WAN to obtain an L3 address before starting SQM.
-# nss-edma.qos's check_addr aborts ("no IP on wan (proto=pppoe)") when
-# pppoe-wan has no address yet, and the iface hotplug for an interface='wan'
-# SQM section does not reliably re-fire -> with only a fixed sleep, PPPoE
-# negotiation outlasts the wait at boot and SQM silently never starts.
-# Poll pppoe-wan for up to ~60s instead.
+# nss-edma.qos's check_addr aborts ("no IP on wan (proto=pppoe)") when pppoe-wan
+# has no address yet, and the iface hotplug for an interface='wan' SQM section
+# does not reliably re-fire -> with only a fixed sleep, PPPoE negotiation
+# outlasts the wait at boot and SQM silently never starts. Poll for up to ~60s.
 i=0
 while [ $i -lt 30 ]; do
   if ip -4 addr show dev pppoe-wan 2>/dev/null | grep -q "inet " \
@@ -101,17 +101,22 @@ echo f > /proc/net/nf_conntrack 2>/dev/null
 echo "NSS+wifi+ECM up. accel counts:"
 cat /sys/kernel/debug/ecm/ecm_nss_ipv4/accelerated_count /sys/kernel/debug/ecm/ecm_nss_ipv6/accelerated_count
 
-# Routed (L3) multicast: start the IGMP proxy now that pppoe-wan has an address.
-# Opt-in with this script; its init is disabled at boot (uci-defaults 997) so it
-# never runs on a host-only boot. start_service self-guards (returns early unless
-# a configured upstream phyint is up), so this is safe to call unconditionally and
-# is a no-op without a WAN multicast source. Each kernel MFC entry igmpproxy
-# installs becomes a PPE hardware rule via ECM's routed-mc classifier (watch
-# ipv4_mc_connection_create_requests in /sys/kernel/debug/qca-nss-drv/stats/ipv4).
-[ -x /usr/sbin/igmpproxy ] && /etc/init.d/igmpproxy start 2>/dev/null || true
+# --- Optional offloads (NOT enabled in the default image) ------------------
+# Routed (L3) multicast, e.g. IPTV WAN->LAN. To enable it in a fork: add a
+# multicast-routing daemon to the build (CONFIG_PACKAGE_igmpproxy=y or smcroute),
+# ship your own /etc/config for it, disable its boot autostart so it starts only
+# here (after pppoe-wan has an address), and uncomment the line below. ECM
+# (ECM_MULTICAST_ENABLE, already on) then turns each kernel MFC entry the daemon
+# installs into a PPE hardware rule. See docs/CUSTOMIZE.md.
+# [ -x /usr/sbin/igmpproxy ] && /etc/init.d/igmpproxy start 2>/dev/null || true
+#
+# The other build-verified extras (nat46/MAP-T, vxlan, macvlan, gre) need no
+# bring-up step here - ECM offloads them automatically once their kmod and
+# interface exist.
+# ---------------------------------------------------------------------------
 
-# Start SQM, retrying until the NSS shaper actually attaches to wan
-# (check_addr can still lose a race in the first moments after the IP appears).
+# Start SQM, retrying until the NSS shaper actually attaches to wan (check_addr
+# can still lose a race in the first moments after the IP appears).
 if /etc/init.d/sqm enabled; then
   j=0
   while [ $j -lt 5 ]; do
