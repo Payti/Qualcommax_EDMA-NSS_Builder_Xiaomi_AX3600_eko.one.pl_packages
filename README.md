@@ -1,4 +1,4 @@
-# Qualcommax EDMA-NSS Builder
+# Qualcommax NSS Builder
 
 ### OpenWrt image builder for the Xiaomi AX3600 — NSS hardware offload on the upstream EDMA drivers
 
@@ -26,7 +26,7 @@ results are in the
 ## Use it
 
 Grab the `*-sysupgrade.bin` from the newest `edma-nss*`
-[release]([https://github.com/Payti/Qualcommax_EDMA-NSS_Builder_Xiaomi_AX3600_eko.one.pl_packages/releases])
+[release](https://github.com/Payti/Qualcommax_EDMA-NSS_Builder_Xiaomi_AX3600_eko.one.pl_packages/releases)
 and flash it:
 
 ```sh
@@ -47,7 +47,6 @@ To stay on the host stack permanently:
 `uci set nss.general.enabled='0'; uci commit nss` (survives sysupgrade).
 
 Check plane health any time with `nss-status` over ssh, or in LuCI under
-
 **Status → NSS Offload**.
 
 Wi-Fi is **enabled out of the box**: SSID `OpenWrt`, WPA2/WPA3 (`sae-mixed`),
@@ -68,7 +67,8 @@ included desktop-router config:
 | **Bridge offload** | `kmod-qca-nss-drv-bridge-mgr` — wired LAN bridging in hardware |
 | **Multicast** | `kmod-qca-mcs` — same-subnet multicast hardware-bridged to snooped members |
 | **SQM** | NSS qdiscs (`-qdisc`/`-igs`) + `sqm-scripts-nss` (`nss-edma.qos`) + `luci-app-sqm` |
-| **Wi-Fi** | ath11k NSS offload (wifili) on both radios (`CONFIG_ATH11K_NSS_SUPPORT`); enabled by default (SSID `OpenWrt`, WPA2/WPA3, password `openwrt-nss` — change it)|
+| **Wi-Fi** | ath11k NSS offload (wifili) on both radios (`CONFIG_ATH11K_NSS_SUPPORT`); enabled by default (SSID `OpenWrt`, WPA2/WPA3, password `openwrt-nss` — change it) |
+| **Diagnostics** | `nss-status` CLI health report + LuCI **Status → NSS Offload** page |
 | **Firmware/profile** | `NSS.FW.12.5-210-HK.R`, MEDIUM memory profile (512 MB) |
 | **Security** | OpenSSH only (post-quantum KEX, AEAD/ETM, RSA ≥ 3072), `PKG_*` hardening (ASLR/PIE, stack protector, FORTIFY_3, RELRO, seccomp), WAN DROP + BCP38, HTTPS redirect, OQS provider in OpenSSL |
 | **Toolchain** | GCC 15 + Graphite, Binutils 2.46, Mold linker, LTO, `-mcpu=cortex-a53+crc+crypto`; ccache off |
@@ -197,6 +197,17 @@ Issues and PRs welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md).
   [ipq807x-openwrt-builder](https://github.com/rodriguezst/ipq807x-openwrt-builder)
 - **OpenWrt community** — the
   [IPQ807x NSS Build thread](https://forum.openwrt.org/t/ipq807x-nss-build/148529)
+
+## Support the project
+
+This is an unpaid, single-maintainer effort. If this work is useful to you,
+consider chipping in — it goes toward IPQ807x development and hardware to start
+looking into **IPQ50xx** and **IPQ60xx** next.
+
+- **[GitHub Sponsors](https://github.com/sponsors/JuliusBairaktaris)** — zero-fee, GitHub-native
+- **[PayPal](https://paypal.me/JuliusBairaktaris)** — one-off donations
+
+Thank you!
 
 ## License
 
