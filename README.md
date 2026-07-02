@@ -1,4 +1,4 @@
-# Qualcommax NSS Builder
+# Qualcommax EDMA-NSS Builder
 
 ### OpenWrt image builder for the Xiaomi AX3600 — NSS hardware offload on the upstream EDMA drivers
 
