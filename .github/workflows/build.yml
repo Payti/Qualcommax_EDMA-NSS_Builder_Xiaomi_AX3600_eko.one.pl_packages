@@ -7,8 +7,8 @@ name: Build
 # (GitHub Actions cron values must be static strings in this file).
 on:
   workflow_dispatch:
-      inputs:
-       variant:
+    inputs:
+      variant:
         description: "Variant(s) to build"
         type: choice
         options:
