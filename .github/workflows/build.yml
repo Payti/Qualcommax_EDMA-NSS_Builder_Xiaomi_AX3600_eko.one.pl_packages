@@ -1,0 +1,261 @@
+name: Build
+
+# Builds the single edma-nss image for the Xiaomi AX3600:
+#   check (upstream moved?) -> build -> prune
+# All build parameters live in the `env:` block below — it is the one file you edit.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'devices/**'
+      - 'scripts/**'
+      - '.github/workflows/build.yml'
+  schedule:
+    - cron: "0 */2 * * *"
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  UPSTREAM_REPO: JuliusBairaktaris/openwrt-nss-edma
+  UPSTREAM_REF: nss-edma-rework
+  NSS_REPO: JuliusBairaktaris/nss-packages
+  NSS_REF: edma-nss
+  TARGET: qualcommax/ipq807x
+  DEVICE: xiaomi_ax3600
+  VARIANT: edma-nss
+  RELEASE_PREFIX: edma-nss
+  KEEP: "2"
+  FEEDS: |
+    src-git nss https://github.com/JuliusBairaktaris/nss-packages.git;edma-nss
+    src-git obsy https://github.com/obsy/packages
+
+jobs:
+  check:
+    name: Check upstream
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      EVENT_NAME: ${{ github.event_name }}
+    outputs:
+      upstream_sha: ${{ steps.check.outputs.upstream_sha }}
+      nss_sha: ${{ steps.check.outputs.nss_sha }}
+      need: ${{ steps.check.outputs.need }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: check
+        run: bash scripts/check-updates.sh
+
+  build:
+    name: Build edma-nss_12.5 (xiaomi_ax3600)
+    needs: check
+    if: needs.check.outputs.need == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Install build dependencies
+        run: |
+          set -euo pipefail
+          # Pinned to the ubuntu-latest runner. OpenWrt main (as of May 2026) builds its own
+          # flex/bison/etc. host tools, so the host set is the minimal OpenWrt prerequisite list
+          # for Ubuntu 26.04. rsync is for prepare-build.sh's overlay step. Everything else
+          # (file, wget, unzip, gh) is preinstalled on the GitHub runner image.
+          sudo apt-get update
+          sudo apt-get install -y \
+            bzip2 g++ gawk gcc git glibc-source libncurses-dev make rsync mc
+
+      - name: Start tmate session in background (5 min timeout) for SSH login
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
+          detached: true
+          connect-timeout-seconds: 300
+
+      - name: Checkout OpenWrt source
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.UPSTREAM_REPO }}
+          ref: ${{ needs.check.outputs.upstream_sha }}
+          fetch-depth: 0
+          path: openwrt
+
+      - name: Checkout builder repo
+        uses: actions/checkout@v7
+        with:
+          path: builder
+
+      - name: Prepare build environment
+        env:
+          OPENWRT_DIR: ${{ github.workspace }}/openwrt
+          BUILDER_REPO: ${{ github.workspace }}/builder
+        run: bash builder/scripts/prepare-build.sh
+      - name: Dynamically update custom OpenWrt banner info
+        working-directory: openwrt
+        run: |
+          set -euo pipefail
+
+          if [ -f scripts/getver.sh ]; then
+            OPENWRT_VERSION_RAW=$(bash scripts/getver.sh)
+          else
+            OPENWRT_VERSION_RAW=$(git rev-parse --short=10 HEAD)
+          fi
+
+          OPENWRT_VERSION="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW}"
+          CURRENT_BUILD_TIME=$(date -u +"%Y-%m-%d %H:%M UTC")
+
+          if [ -f files/etc/banner ]; then
+            VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (edma-nss_12.5)"
+            DATE_LINE="Build time: $CURRENT_BUILD_TIME"
+
+            # PERFEKCYJNE WYRÓWNANIE DLA TABELI O DŁUGOŚCI 78 ZNAKÓW:
+            VERSION_PADDING=$(printf '%-74s' "$VERSION_LINE")
+            FINAL_VERSION_ROW=" | ${VERSION_PADDING}|"
+
+            DATE_PADDING=$(printf '%-74s' "$DATE_LINE")
+            FINAL_DATE_ROW=" | ${DATE_PADDING}|"
+
+            sed -i "s#.*VERSION_PLACEHOLDER.*#$FINAL_VERSION_ROW#g" files/etc/banner
+            sed -i "s#.*DATE_PLACEHOLDER.*#$FINAL_DATE_ROW#g" files/etc/banner
+
+            echo "Successfully injected real git version and build time into EDMA-NSS banner."
+          else
+            echo "::warning::Custom banner file was not deployed by prepare-build.sh to openwrt/files/etc/banner"
+            VERSION_LINE="OpenWrt SNAPSHOT"
+            FINAL_VERSION_ROW=""
+            DATE_LINE=""
+            FINAL_DATE_ROW=""
+          fi
+
+          TARGET_RELEASE_FILE="package/base-files/files/etc/openwrt_release"
+          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (edma-nss_12.5 - EDMA-NSS build by @Payti)"
+          if [ -f "$TARGET_RELEASE_FILE" ]; then
+            sed -i '/DISTRIB_DESCRIPTION=/d' "$TARGET_RELEASE_FILE" || true
+            echo "DISTRIB_DESCRIPTION='${DISTRIB_DESCRIPTION}'" >> "$TARGET_RELEASE_FILE"
+          fi
+
+          echo "=================================================="
+          echo "OPENWRT_VERSION:         $OPENWRT_VERSION"
+          echo "CURRENT_BUILD_TIME:      $CURRENT_BUILD_TIME"
+          echo "VERSION_LINE:            ${VERSION_LINE:-}"
+          echo "DATE_LINE:               ${DATE_LINE:-}"
+          echo "FINAL_VERSION_ROW:       ${FINAL_VERSION_ROW:-}"
+          echo "FINAL_DATE_ROW:          ${FINAL_DATE_ROW:-}"
+          echo "=================================================="
+
+      - name: Set reproducible-build env
+        working-directory: openwrt
+        run: |
+          set -euo pipefail
+          {
+            echo "SOURCE_DATE_EPOCH=$(git show -s --format=%ct HEAD)"
+            echo "TZ=UTC"
+            echo "LC_ALL=C"
+            echo "KBUILD_BUILD_USER=builder"
+            echo "KBUILD_BUILD_HOST=github"
+          } >>"$GITHUB_ENV"
+
+      - name: Download sources
+        working-directory: openwrt
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            make download -j"$(nproc)" V=s && break
+            echo "Download attempt $attempt failed; retrying..."
+            sleep 5
+          done
+
+      - name: Build
+        working-directory: openwrt
+        run: |
+          set -euo pipefail
+          if ! make -j"$(nproc)"; then
+            echo "::warning::Parallel build failed; retrying single-threaded for diagnostics"
+            make -j1 V=s
+          fi
+
+      - name: Pack APK Packages
+        working-directory: openwrt
+        run: |
+          echo "### Pakowanie skompilowanych pakietów .apk ###"
+          if [ -d "bin/packages" ]; then
+            tar -czf bin/targets/qualcommax/ipq807x/compiled_packages.tar.gz -C bin packages
+            echo "-> Pakiety zostały pomyślnie spakowane do compiled_packages.tar.gz"
+          else
+            echo "-> OSTRZEŻENIE: Nie znaleziono katalogu bin/packages!"
+          fi
+
+      - name: Publish release
+        id: release
+        env:
+          UPSTREAM_SHA: ${{ needs.check.outputs.upstream_sha }}
+          NSS_SHA: ${{ needs.check.outputs.nss_sha }}
+        run: |
+          set -euo pipefail
+          date=$(date -u +%F)
+          timestamp=$(date -u +%Y%m%dT%H%M%SZ)
+          tag_name="${RELEASE_PREFIX}-${timestamp}-${GITHUB_RUN_ID}"
+          echo "release_tag=$tag_name" >>"$GITHUB_OUTPUT"
+
+          {
+            echo "## OpenWrt Build — ${VARIANT}"
+            echo "- **Date**: $date"
+            echo "- **Variant**: \`${VARIANT}\`"
+            echo "- **Device**: \`${DEVICE}\`"
+            echo "- **Target**: \`${TARGET}\`"
+            echo "- **Upstream**: \`${UPSTREAM_REPO}@${UPSTREAM_SHA}\`"
+            if [[ -n "${NSS_SHA}" ]]; then
+              echo "- **NSS**: \`${NSS_SHA}\`"
+            fi
+            echo "- **Trigger**: \`${GITHUB_EVENT_NAME}\`"
+            echo "- **Compiled by**: @Payti"
+          } >release_notes.md
+
+          mapfile -t assets < <(find "openwrt/bin/targets/${TARGET}/" -type f -not -path "*/packages/*")
+
+          for asset in "${assets[@]}"; do
+            dir=$(dirname "$asset")
+            base=$(basename "$asset")
+            if [[ ! "$base" =~ ^edma-nss_ ]]; then
+              mv "$asset" "$dir/${VARIANT}-$base"
+            fi
+          done
+
+          mapfile -t renamed_assets < <(find "openwrt/bin/targets/${TARGET}/" -type f -not -path "*/packages/*")
+
+          gh release create "$tag_name" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "OpenWrt ${VARIANT} $date" \
+            --notes-file release_notes.md \
+            "${renamed_assets[@]}"
+
+          {
+            echo "## Release (${VARIANT})"
+            echo "- tag: \`${tag_name}\`"
+            echo "- assets: ${#renamed_assets[@]}"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+  prune:
+    name: Prune old releases
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Prune
+        run: bash scripts/prune-releases.sh
