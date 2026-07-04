@@ -104,6 +104,10 @@ CONFIG_NSS_MEM_PROFILE_MEDIUM=y
 ## frame_mode=2); /usr/sbin/nss-up moves the radios onto the NSS data path.
 CONFIG_ATH11K_NSS_SUPPORT=y
 CONFIG_PACKAGE_MAC80211_NSS_SUPPORT=y
+## 802.11s mesh offload: compiles the ath11k mesh path/proxy-path offload
+## and pulls the NSS Wi-Fi mesh manager. Mesh interfaces ride the NSS path
+## once the radios run with nss_offload=1.
+CONFIG_ATH11K_NSS_MESH_SUPPORT=y
 
 ## NSS qdisc/SQM (nss-edma.qos) + the SQM LuCI app
 CONFIG_PACKAGE_kmod-qca-nss-drv-qdisc=y
@@ -136,6 +140,12 @@ CONFIG_PACKAGE_libnl-nss=y
 CONFIG_KERNEL_DEVMEM=y
 CONFIG_BUSYBOX_CUSTOM=y
 CONFIG_BUSYBOX_CONFIG_DEVMEM=y
+
+## Runtime-switchable driver diagnostics: the QCA NSS modules compile their
+## warning/info prints as pr_debug when the kernel has dynamic debug, so they
+## can be enabled per-file at runtime via /sys/kernel/debug/dynamic_debug —
+## no module rebuild or swap needed on a device with no serial console.
+CONFIG_KERNEL_DYNAMIC_DEBUG=y
 
 ## Crash forensics: persist the kernel console and panic traces across
 ## reboots in the board's ramoops region; the image archives them to
