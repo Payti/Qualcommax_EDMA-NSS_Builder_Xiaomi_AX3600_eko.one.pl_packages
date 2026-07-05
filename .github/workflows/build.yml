@@ -54,7 +54,7 @@ jobs:
         run: bash scripts/check-updates.sh
 
   build:
-    name: Build OpenWrt (${{ matrix.nss_version }})
+    name: Build OpenWrt (edma-${{ matrix.nss_version }})
     needs: check
     if: needs.check.outputs.need == 'true'
     runs-on: ubuntu-latest
@@ -233,7 +233,7 @@ jobs:
           CURRENT_BUILD_TIME=$(date -u +"%Y-%m-%d %H:%M UTC")
 
           if [ -f files/etc/banner ]; then
-            VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (${{ matrix.nss_version }})"
+            VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (edma-${{ matrix.nss_version }})"
             DATE_LINE="Build time: $CURRENT_BUILD_TIME"
 
             VERSION_PADDING=$(printf '%-74s' "$VERSION_LINE")
@@ -255,7 +255,7 @@ jobs:
           fi
 
           TARGET_RELEASE_FILE="package/base-files/files/etc/openwrt_release"
-          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (${{ matrix.nss_version }} - EDMA-NSS build by @Payti)"
+          DISTRIB_DESCRIPTION="${OPENWRT_VERSION} (edma-${{ matrix.nss_version }} - EDMA-NSS build by @Payti)"
           if [ -f "$TARGET_RELEASE_FILE" ]; then
             sed -i '/DISTRIB_DESCRIPTION=/d' "$TARGET_RELEASE_FILE" || true
             echo "DISTRIB_DESCRIPTION='${DISTRIB_DESCRIPTION}'" >> "$TARGET_RELEASE_FILE"
@@ -332,13 +332,13 @@ jobs:
           set -euo pipefail
           date=$(date -u +%F)
           timestamp=$(date -u +%Y%m%dT%H%M%SZ)
-          tag_name="${RELEASE_PREFIX}-${timestamp}-${GITHUB_RUN_ID}-${{ matrix.nss_version }}"
+          tag_name="${RELEASE_PREFIX}-${timestamp}-${GITHUB_RUN_ID}-edma-${{ matrix.nss_version }}"
           echo "release_tag=$tag_name" >>"$GITHUB_OUTPUT"
 
           {
-            echo "## OpenWrt Build — ${{ matrix.nss_version }}"
+            echo "## OpenWrt Build — edma-${{ matrix.nss_version }}"
             echo "- **Date**: $date"
-            echo "- **Variant**: \`${{ matrix.nss_version }}\`"
+            echo "- **Variant**: \`edma-${{ matrix.nss_version }}\`"
             echo "- **Device**: \`${{ env.DEVICE }}\`"
             echo "- **Target**: \`${{ env.TARGET }}\`"
             echo "- **Upstream**: \`${{ env.UPSTREAM_REPO }}@${UPSTREAM_SHA}\`"
@@ -355,7 +355,7 @@ jobs:
             dir=$(dirname "$asset")
             base=$(basename "$asset")
             if [[ ! "$base" =~ ^edma-nss_ ]]; then
-              mv "$asset" "$dir/${{ matrix.nss_version }}-$base"
+              mv "$asset" "$dir/edma-${{ matrix.nss_version }}-$base"
             fi
           done
 
@@ -363,12 +363,12 @@ jobs:
 
           gh release create "$tag_name" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "OpenWrt ${{ matrix.nss_version }} $date" \
+            --title "OpenWrt edma-${{ matrix.nss_version }} $date" \
             --notes-file release_notes.md \
             "${renamed_assets[@]}"
 
           {
-            echo "## Release (${{ matrix.nss_version }})"
+            echo "## Release (edma-${{ matrix.nss_version }})"
             echo "- tag: \`${tag_name}\`"
             echo "- assets: ${#renamed_assets[@]}"
           } >>"$GITHUB_STEP_SUMMARY"
