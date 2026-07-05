@@ -32,6 +32,9 @@ and flash it:
 ```sh
 sysupgrade -n /tmp/edma-nss_12.5-openwrt-qualcommax-ipq807x-xiaomi_ax3600-squashfs-sysupgrade.bin
 ```
+```sh
+sysupgrade -n /tmp/edma-nss_11.4-openwrt-qualcommax-ipq807x-xiaomi_ax3600-squashfs-sysupgrade.bin
+```
 
 Or via LuCI: **System → Backup / Flash Firmware**, upload, uncheck "Keep
 settings" for a first-time flash. Coming from stock Xiaomi firmware? Install
