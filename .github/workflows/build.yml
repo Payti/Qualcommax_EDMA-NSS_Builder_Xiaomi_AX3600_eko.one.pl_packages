@@ -64,7 +64,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nss_version: [ "nss_12.5", "nss_11.4" ]
+        nss_version: ["nss_12.5", "nss_11.4"]
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
