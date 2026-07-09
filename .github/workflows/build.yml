@@ -82,6 +82,15 @@ jobs:
           detached: true
           connect-timeout-seconds: 300
 
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          swap-storage: false
+
       - name: Checkout OpenWrt source
         uses: actions/checkout@v7
         with:
@@ -271,12 +280,37 @@ jobs:
                 echo "CONFIG_PACKAGE_ds-lite=y"
                 echo "CONFIG_PACKAGE_ethtool=y"
                 echo "CONFIG_PACKAGE_gre=y"
+                echo "CONFIG_PACKAGE_luci-i18n-nss-pl=y"
+                echo "CONFIG_PACKAGE_luci-i18n-nssqos-pl=y"
+                echo "CONFIG_LUCI_LANG_pl=y"
               } >> "$CONFIG_FILE"
               echo "Successfully patched config with CONFIG_NSS_FIRMWARE_VERSION_11_4=y and added all absolute NSS components"
             else
-              echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y" >> "$CONFIG_FILE"
+              {
+                echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
+                echo "CONFIG_PACKAGE_luci-i18n-nss-pl=y"
+                echo "CONFIG_PACKAGE_luci-i18n-nssqos-pl=y"
+                echo "CONFIG_LUCI_LANG_pl=y"
+              } >> "$CONFIG_FILE"
               echo "Successfully patched config with CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
             fi
+
+            # 📂 Dynamiczne kopiowanie plików PO przy użyciu zmiennej DEVICE_DIR
+            TARGET_PO_DIR="${{ github.workspace }}/openwrt/package/nss/nss-tools/po/pl"
+            SOURCE_PO_DIR="${{ github.workspace }}/builder/$DEVICE_DIR/po/pl"
+
+            mkdir -p "$TARGET_PO_DIR"
+            if [ -d "$SOURCE_PO_DIR" ]; then
+                cp -f "$SOURCE_PO_DIR"/*.po "$TARGET_PO_DIR/" 2>/dev/null || true
+                echo "--> Pomyślnie skopiowano pliki .po z katalogu $DEVICE_DIR"
+            else
+                echo "--> Ostrzeżenie: Brak plików .po w katalogu $SOURCE_PO_DIR"
+            fi
+
+            # 🛠️ Łatanie plików menu w katalogu nss-tools (dodanie i18n dla ucode/JS)
+            FILES_DIR="${{ github.workspace }}/openwrt/package/nss/nss-tools/files"
+            [ -f "$FILES_DIR/luci-app-nss.menu.json" ] && sed -i 's/"action":/"i18n": "luci-app-nss",\n\t\t"action":/g' "$FILES_DIR/luci-app-nss.menu.json"
+            [ -f "$FILES_DIR/luci-app-nssqos.menu.json" ] && sed -i 's/"action":/"i18n": "luci-app-nssqos",\n\t\t"action":/g' "$FILES_DIR/luci-app-nssqos.menu.json"
 
             # Ponowne skopiowanie pliku config i przeładowanie w openwrt, aby prepare-build.sh zaaplikował zmiany
             cp "$CONFIG_FILE" ${{ github.workspace }}/openwrt/.config

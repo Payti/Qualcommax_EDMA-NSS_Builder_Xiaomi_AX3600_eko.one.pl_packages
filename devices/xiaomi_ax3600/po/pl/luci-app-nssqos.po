@@ -1,0 +1,223 @@
+#. NSS Connections
+msgid "NSS Connections"
+msgstr "Połączenia NSS"
+
+msgid "Live connection table with rates computed between polls — NSS-accelerated flows included (their counters are synced back from the firmware). The DSCP column shows classes applied by the QoS marking rules. Click a column header to sort; the row of boxes filters each column."
+msgstr "Tabela połączeń na żywo z prędkościami obliczanymi między odpytaniami — uwzględnia przepływy przyspieszane sprzętowo przez NSS (ich liczniki są synchronizowane wstecznie z oprogramowania układowego). Kolumna DSCP pokazuje klasy przypisane przez reguły znakowania QoS. Kliknij nagłówek kolumny, aby posortować; rząd pól służy do filtrowania każdej kolumny."
+
+msgid "Freeze"
+msgstr "Zamroź"
+
+msgid "Proto"
+msgstr "Protokół"
+
+msgid "Source"
+msgstr "Źródło"
+
+msgid "Destination"
+msgstr "Cel"
+
+msgid "State"
+msgstr "Stan"
+
+msgid "DSCP"
+msgstr "DSCP"
+
+msgid "PPS"
+msgstr "PPS"
+
+msgid "Rate"
+msgstr "Prędkość"
+
+msgid "Total"
+msgstr "Łącznie"
+
+#. NSS Offload
+msgid "NSS Offload"
+msgstr "Odciążenie NSS"
+
+msgid "Enable NSS Hardware Acceleration"
+msgstr "Włącz akcelerację sprzętową NSS"
+
+msgid "NSS Status"
+msgstr "Status NSS"
+
+msgid "Active accelerated flows"
+msgstr "Aktywne przyspieszane przepływy"
+
+msgid "IPv4 Offload"
+msgstr "Odciążenie IPv4"
+
+msgid "IPv6 Offload"
+msgstr "Odciążenie IPv6"
+
+#. QoS Marking (NSS)
+msgid "QoS Marking (NSS)"
+msgstr "Znakowanie QoS (NSS)"
+
+msgid "NSS QoS Rules"
+msgstr "Reguły QoS NSS"
+
+msgid "Configure DSCP and priority marking for hardware-accelerated traffic."
+msgstr "Konfiguracja DSCP oraz znakowania priorytetów dla ruchu przyspieszanego sprzętowo."
+
+msgid "Traffic Class"
+msgstr "Klasa ruchu"
+
+msgid "Priority"
+msgstr "Priorytet"
+
+#. NSS Offload - Statystyki i Status
+msgid "Offload active"
+msgstr "Odciążenie aktywne"
+
+msgid "Firmware"
+msgstr "Oprogramowanie układowe"
+
+msgid "Heartbeat"
+msgstr "Taktowanie (Heartbeat)"
+
+msgid "NSS core load"
+msgstr "Obciążenie rdzeni NSS"
+
+msgid "ECM accelerated connections"
+msgstr "Połączenia przyspieszane przez ECM"
+
+msgid "Bridge offload (bridge-mgr)"
+msgstr "Odciążenie mostka sieciowego (bridge-mgr)"
+
+msgid "Multicast snooping (qca-mcs)"
+msgstr "Snooping pakietów Multicast (qca-mcs)"
+
+msgid "PPPoE manager"
+msgstr "Menedżer połączeń PPPoE"
+
+msgid "Wi-Fi data path"
+msgstr "Ścieżka danych Wi-Fi"
+
+msgid "SQM shaper"
+msgstr "Kształtowanie ruchu SQM"
+
+msgid "loaded"
+msgstr "załadowano"
+
+msgid "NSS offload active (wifili)"
+msgstr "Odciążenie NSS aktywne (wifili)"
+
+msgid "no NSS shaper on wan"
+msgstr "brak kształtowania ruchu NSS na porcie WAN"
+
+#. Firmware-attached ports
+msgid "Firmware-attached ports"
+msgstr "Porty powiązane z oprogramowaniem układowym"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "if_num"
+msgstr "Numer interfejsu (if_num)"
+
+msgid "Started"
+msgstr "Uruchomiono"
+
+msgid "TX packets"
+msgstr "Pakiety nadane (TX)"
+
+msgid "RX from firmware"
+msgstr "Odebrane z oprogramowania układowego (RX)"
+
+#. NSS QoS Marking
+msgid "NSS QoS Marking"
+msgstr "Znakowanie QoS NSS"
+
+msgid "DSCP marking and prioritization for the NSS-accelerated SQM. Each rule marks both directions of matching connections; the NSS firmware applies the mark to accelerated (offloaded) traffic as well. Fast-lane flows bypass the SQM queues entirely — mark sparse traffic only (games, calls, DNS), never bulk transfers."
+msgstr "Znakowanie DSCP oraz priorytetyzacja dla SQM przyspieszanego sprzętowo przez NSS. Każda reguła znakuje oba kierunki pasujących połączeń; oprogramowanie układowe NSS stosuje to znakowanie również do ruchu odciążonego (offloaded). Przepływy szybkiej ścieżki (Fast-lane) całkowicie omijają kolejki SQM — oznaczaj wyłącznie rzadki ruch (gry, połączenia głosowe, DNS), nigdy masowe transfery danych."
+
+#. Global
+msgid "Global"
+msgstr "Ustawienia globalne"
+
+msgid "Master switch for all marking rules."
+msgstr "Główny przełącznik dla wszystkich reguł znakowania."
+
+msgid "Wash ingress DSCP"
+msgstr "Czyszczenie wejściowego DSCP (Wash ingress)"
+
+msgid "Reset untrusted DSCP on packets arriving from the ISP to CS0. Marking rules below still re-mark what they match."
+msgstr "Resetuje niezaufane wartości DSCP do poziomu CS0 w pakietach przychodzących od dostawcy internetu (ISP). Poniższe reguły znakowania nadal nadadzą nowe znaczniki pasującym pakietom."
+
+msgid "Wash egress DSCP"
+msgstr "Czyszczenie wyjściowego DSCP (Wash egress)"
+
+msgid "Send all traffic to the ISP as CS0. Fast-lane prioritization is unaffected — it rides the internal priority mark, not the wire DSCP."
+msgstr "Wysyła cały ruch do dostawcy internetu (ISP) jako CS0. Priorytetyzacja szybkiej ścieżki (Fast-lane) pozostaje nienaruszona — opiera się ona na wewnętrznym znaczniku priorytetu, a nie na fizycznym nagłówku DSCP."
+
+#. Rules Table
+msgid "Rules"
+msgstr "Reguły"
+
+msgid "Destination ports"
+msgstr "Porty docelowe"
+
+msgid "DSCP class"
+msgstr "Klasa DSCP"
+
+msgid "Fast lane"
+msgstr "Szybka ścieżka (Fast lane)"
+
+#. Przykładowe nazwy usług
+msgid "Game consoles / Call of Duty"
+msgstr "Konsole do gier / Call of Duty"
+
+msgid "PC games - Steam/Source/CS2"
+msgstr "Gry PC - Steam/Source/CS2"
+
+msgid "PC games - Riot (League/Valorant)"
+msgstr "Gry PC - Riot (League/Valorant)"
+
+msgid "Video call - MS Teams"
+msgstr "Wideorozmowy - MS Teams"
+
+msgid "Video call - Discord voice"
+msgstr "Wideorozmowy - Discord (głos)"
+
+msgid "Video call - WhatsApp"
+msgstr "Wideorozmowy - WhatsApp"
+
+msgid "VoIP - SIP signaling"
+msgstr "VoIP - sygnalizacja SIP"
+
+msgid "VoIP - RTP media"
+msgstr "VoIP - strumień RTP"
+
+msgid "Video call - Zoom"
+msgstr "Wideorozmowy - Zoom"
+
+#. Elementy tabeli i nagłówki kolumn
+msgid "Enabled"
+msgstr "Włączone"
+
+msgid "Name"
+msgstr "Nazwa"
+
+msgid "Protocol"
+msgstr "Protokół"
+
+#. Przyciski akcji LuCI
+msgid "Edit"
+msgstr "Edytuj"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Add"
+msgstr "Dodaj"
+
+msgid "Save & Apply"
+msgstr "Zapisz i zastosuj"
+
+msgid "Save"
+msgstr "Zapisz"
+
+msgid "Reset"
+msgstr "Resetuj"
