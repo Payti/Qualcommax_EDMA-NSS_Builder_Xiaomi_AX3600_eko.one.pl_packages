@@ -13,4 +13,7 @@ if [ -f "$FILE" ]; then
 fi
 # Ustawienie +x dla 20_cpu_temperature
 chmod +x /etc/sysinfo.d/20_cpu_temperature
+# Usuwanie repo 'obsy' i 'nss' z distfeeds.list -> powodują błędy dla 'apk update'
+sed -i '/obsy/d' /etc/apk/repositories.d/distfeeds.list
+sed -i '/nss/d' /etc/apk/repositories.d/distfeeds.list
 exit 0
