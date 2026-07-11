@@ -295,24 +295,46 @@ jobs:
               echo "Successfully patched config with CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
             fi
 
-            # 📂 Dynamiczne kopiowanie plików PO przy użyciu zmiennej DEVICE_DIR
-            TARGET_PO_DIR="${{ github.workspace }}/openwrt/package/nss/nss-tools/po/pl"
+            # =========================================================================
+            # 🇵🇱 SYSTEMOWE SCALENIE I18N DLA OBU WARIANTÓW (DODANIE DO RDZENIA LUCI-BASE)
+            # =========================================================================
             SOURCE_PO_DIR="${{ github.workspace }}/builder/$DEVICE_DIR/po/pl"
+            LUCI_BASE_PO="${{ github.workspace }}/openwrt/feeds/luci/modules/luci-base/po/pl/base.po"
 
-            mkdir -p "$TARGET_PO_DIR"
-            if [ -d "$SOURCE_PO_DIR" ]; then
-                cp -f "$SOURCE_PO_DIR"/*.po "$TARGET_PO_DIR/" 2>/dev/null || true
-                echo "--> Pomyślnie skopiowano pliki .po z katalogu $DEVICE_DIR"
-            else
-                echo "--> Ostrzeżenie: Brak plików .po w katalogu $SOURCE_PO_DIR"
+            # Dynamiczne poszukiwanie pliku base.po w przypadku przesunięć w feedach LuCI
+            if [ ! -f "$LUCI_BASE_PO" ]; then
+                LUCI_BASE_PO=$(find ${{ github.workspace }}/openwrt/ -path "*/luci-base/po/pl/base.po" | head -n 1)
             fi
 
-            # 🛠️ Łatanie plików menu w katalogu nss-tools (dodanie i18n dla ucode/JS)
-            FILES_DIR="${{ github.workspace }}/openwrt/package/nss/nss-tools/files"
-            [ -f "$FILES_DIR/luci-app-nss.menu.json" ] && sed -i 's/"action":/"i18n": "luci-app-nss",\n\t\t"action":/g' "$FILES_DIR/luci-app-nss.menu.json"
-            [ -f "$FILES_DIR/luci-app-nssqos.menu.json" ] && sed -i 's/"action":/"i18n": "luci-app-nssqos",\n\t\t"action":/g' "$FILES_DIR/luci-app-nssqos.menu.json"
+            if [ -n "$LUCI_BASE_PO" ] && [ -f "$LUCI_BASE_PO" ]; then
+                if [ -f "$SOURCE_PO_DIR/luci-app-nss.po" ] && [ -f "$SOURCE_PO_DIR/luci-app-nssqos.po" ]; then
+                    echo -e "\n" >> "$LUCI_BASE_PO"
+                    cat "$SOURCE_PO_DIR/luci-app-nss.po" >> "$LUCI_BASE_PO"
+                    echo -e "\n" >> "$LUCI_BASE_PO"
+                    cat "$SOURCE_PO_DIR/luci-app-nssqos.po" >> "$LUCI_BASE_PO"
+                    echo "--> SUCCESS: Pomyślnie scalono 71 fraz NSS z głównym słownikiem systemowym base.po"
+                else
+                    echo "ERROR: Brak plików źródłowych .po w katalogu urządzenia $SOURCE_PO_DIR!" >&2
+                    exit 1
+                fi
+            else
+                echo "ERROR: Krytyczny brak pliku base.po w strukturze OpenWrt!" >&2
+                exit 1
+            fi
 
-            # Ponowne skopiowanie pliku config i przeładowanie w openwrt, aby prepare-build.sh zaaplikował zmiany
+            # 🛠️ ŁATANIE PLIKÓW MENU JULIUSA DLA STRUKTURY DYNAMICZNEJ LUCI-BASE
+            FILES_DIR="${{ github.workspace }}/openwrt/package/nss/nss-tools/files"
+            if [ -f "$FILES_DIR/luci-app-nss.menu.json" ] && [ -f "$FILES_DIR/luci-app-nssqos.menu.json" ]; then
+                sed -i 's/"action":/"i18n": "luci-base",\n\t\t"action":/g' "$FILES_DIR/luci-app-nss.menu.json"
+                sed -i 's/"action":/"i18n": "luci-base",\n\t\t"action":/g' "$FILES_DIR/luci-app-nssqos.menu.json"
+                echo "--> SUCCESS: Pliki menu JSON zostały pomyślnie powiązane z domeną luci-base."
+            else
+                echo "ERROR: Brak krytycznych plików menu w $FILES_DIR!" >&2
+                exit 1
+            fi
+            # =========================================================================
+
+            # Ponowne skopiowanie pliku config i przeładowanie w openwrt
             cp "$CONFIG_FILE" ${{ github.workspace }}/openwrt/.config
             make -C ${{ github.workspace }}/openwrt defconfig
           fi
