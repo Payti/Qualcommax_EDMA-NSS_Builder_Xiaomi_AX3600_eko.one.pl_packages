@@ -320,6 +320,10 @@ jobs:
                     echo "ERROR: Brak plików źródłowych .po w katalogu urządzenia $SOURCE_PO_DIR!" >&2
                     exit 1
                 fi
+            else
+                echo "ERROR: Krytyczny brak pliku base.po w strukturze OpenWrt!" >&2
+                exit 1
+            fi
 
             # 🛠️ ŁATANIE PLIKÓW MENU JULIUSA DLA STRUKTURY DYNAMICZNEJ LUCI-BASE
             FILES_DIR="${{ github.workspace }}/openwrt/package/nss/nss-tools/files"
