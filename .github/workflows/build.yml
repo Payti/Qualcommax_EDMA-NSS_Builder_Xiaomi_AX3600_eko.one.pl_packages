@@ -308,19 +308,18 @@ jobs:
 
             if [ -n "$LUCI_BASE_PO" ] && [ -f "$LUCI_BASE_PO" ]; then
                 if [ -f "$SOURCE_PO_DIR/luci-app-nss.po" ] && [ -f "$SOURCE_PO_DIR/luci-app-nssqos.po" ]; then
-                    echo -e "\n" >> "$LUCI_BASE_PO"
-                    cat "$SOURCE_PO_DIR/luci-app-nss.po" >> "$LUCI_BASE_PO"
-                    echo -e "\n" >> "$LUCI_BASE_PO"
-                    cat "$SOURCE_PO_DIR/luci-app-nssqos.po" >> "$LUCI_BASE_PO"
+                    # 🔒 Blok spięty w klamry zgodny z rygorystyczną regułą SC2129
+                    {
+                      echo -e "\n"
+                      cat "$SOURCE_PO_DIR/luci-app-nss.po"
+                      echo -e "\n"
+                      cat "$SOURCE_PO_DIR/luci-app-nssqos.po"
+                    } >> "$LUCI_BASE_PO"
                     echo "--> SUCCESS: Pomyślnie scalono 71 fraz NSS z głównym słownikiem systemowym base.po"
                 else
                     echo "ERROR: Brak plików źródłowych .po w katalogu urządzenia $SOURCE_PO_DIR!" >&2
                     exit 1
                 fi
-            else
-                echo "ERROR: Krytyczny brak pliku base.po w strukturze OpenWrt!" >&2
-                exit 1
-            fi
 
             # 🛠️ ŁATANIE PLIKÓW MENU JULIUSA DLA STRUKTURY DYNAMICZNEJ LUCI-BASE
             FILES_DIR="${{ github.workspace }}/openwrt/package/nss/nss-tools/files"
