@@ -335,6 +335,26 @@ jobs:
                 echo "ERROR: Brak krytycznych plików menu w $FILES_DIR!" >&2
                 exit 1
             fi
+            # 🛠️ PEŁNE DWUJĘZYCZNE ŁATANIE WSZYSTKICH 12 REGUŁ USŁUG W SKRYPCIE STARTOWYM NSSQOS.INIT
+            INIT_QOS="${{ github.workspace }}/openwrt/package/nss/nss-tools/files/nssqos.init"
+            if [ -f "$INIT_QOS" ]; then
+                sed -i 's|"Game consoles / Call of Duty"|"Game consoles / Call of Duty (Konsole)"|g' "$INIT_QOS"
+                sed -i 's|"PC games - Steam/Source/CS2"|"PC games - Steam/Source/CS2 (Gry PC)"|g' "$INIT_QOS"
+                sed -i 's|"PC games - Riot (League/Valorant)"|"PC games - Riot (League/Valorant) (Gry PC)"|g' "$INIT_QOS"
+                sed -i 's|"Video call - MS Teams"|"Video call - MS Teams (Wideorozmowy)"|g' "$INIT_QOS"
+                sed -i 's|"Video call - Discord voice"|"Video call - Discord voice (Discord głos)"|g' "$INIT_QOS"
+                sed -i 's|"Video call - WhatsApp"|"Video call - WhatsApp (Wideorozmowy)"|g' "$INIT_QOS"
+                sed -i 's|"Video call - Zoom"|"Video call - Zoom (Wideorozmowy)"|g' "$INIT_QOS"
+                sed -i 's|"VoIP - SIP signaling"|"VoIP - SIP signaling (Sygnalizacja SIP)"|g' "$INIT_QOS"
+                sed -i 's|"VoIP - RTP media"|"VoIP - RTP media (Strumień RTP)"|g' "$INIT_QOS"
+                
+                # Ostatnie trzy brakujące reguły z dołu tabeli:
+                sed -i 's|"IPTV - Telekom MagentaTV"|"IPTV - Telekom MagentaTV (Telewizja)"|g' "$INIT_QOS"
+                sed -i 's|"Bulk / backups / torrents"|"Bulk / backups / torrents (Masowe/Torrenty)"|g' "$INIT_QOS"
+                sed -i 's|"Video stream - my media CDN"|"Video stream - my media CDN (Strumieniowanie wideo)"|g' "$INIT_QOS"
+                
+                echo "--> SUCCESS: Pomyślnie zaaplikowano kompletny zestaw 12 dwujęzycznych reguł w nssqos.init"
+            fi
             # =========================================================================
 
             # Ponowne skopiowanie pliku config i przeładowanie w openwrt

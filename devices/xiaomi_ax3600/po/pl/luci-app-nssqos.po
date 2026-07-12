@@ -130,7 +130,7 @@ msgstr "Odebrane z oprogramowania układowego (RX)"
 msgid "NSS QoS Marking"
 msgstr "Znakowanie QoS NSS"
 
-msgid "DSCP marking and prioritization for the NSS-accelerated SQM. Each rule marks both directions of matching connections; the NSS firmware applies the mark to accelerated (offloaded) traffic as well. Fast-lane flows bypass the SQM queues entirely — mark sparse traffic only (games, calls, DNS), never bulk transfers."
+msgid "DSCP marking and prioritization for the NSS-accelerated SQM. Each rule marks both directions of matching connections; the NSS firmware applies the mark to accelerated (offloaded) traffic as well. Fast-laned flows bypass the SQM queues entirely — mark sparse traffic only (games, calls, DNS), never bulk transfers."
 msgstr "Znakowanie DSCP oraz priorytetyzacja dla SQM przyspieszanego sprzętowo przez NSS. Każda reguła znakuje oba kierunki pasujących połączeń; oprogramowanie układowe NSS stosuje to znakowanie również do ruchu odciążonego (offloaded). Przepływy szybkiej ścieżki (Fast-lane) całkowicie omijają kolejki SQM — oznaczaj wyłącznie rzadki ruch (gry, połączenia głosowe, DNS), nigdy masowe transfery danych."
 
 #. Global
