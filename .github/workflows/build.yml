@@ -347,12 +347,12 @@ jobs:
                 sed -i 's|"Video call - Zoom"|"Video call - Zoom (Wideorozmowy)"|g' "$INIT_QOS"
                 sed -i 's|"VoIP - SIP signaling"|"VoIP - SIP signaling (Sygnalizacja SIP)"|g' "$INIT_QOS"
                 sed -i 's|"VoIP - RTP media"|"VoIP - RTP media (Strumień RTP)"|g' "$INIT_QOS"
-                
+
                 # Ostatnie trzy brakujące reguły z dołu tabeli:
                 sed -i 's|"IPTV - Telekom MagentaTV"|"IPTV - Telekom MagentaTV (Telewizja)"|g' "$INIT_QOS"
                 sed -i 's|"Bulk / backups / torrents"|"Bulk / backups / torrents (Masowe/Torrenty)"|g' "$INIT_QOS"
                 sed -i 's|"Video stream - my media CDN"|"Video stream - my media CDN (Strumieniowanie wideo)"|g' "$INIT_QOS"
-                
+
                 echo "--> SUCCESS: Pomyślnie zaaplikowano kompletny zestaw 12 dwujęzycznych reguł w nssqos.init"
             fi
             # =========================================================================
