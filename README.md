@@ -198,7 +198,7 @@ Issues and PRs welcome — see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Acknowledgements
 
-- **[JuliusBairaktaris)](https://github.com/JuliusBairaktaris)** — the
+- **[JuliusBairaktaris](https://github.com/JuliusBairaktaris)** — the
   [openwrt-nss-edma](https://github.com/JuliusBairaktaris/openwrt-nss-edma) this stack builds on
 - **[Ansuel (Christian Marangi)](https://github.com/Ansuel)** — the
   [EDMA rework](https://github.com/openwrt/openwrt/pull/22381) this stack builds on
