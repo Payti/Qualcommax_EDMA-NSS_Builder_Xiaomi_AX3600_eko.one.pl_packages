@@ -221,3 +221,6 @@ msgstr "Zapisz"
 
 msgid "Reset"
 msgstr "Resetuj"
+
+msgid "no NSS shaper on"
+msgstr "brak kształtowania ruchu NSS na porcie"
