@@ -1,12 +1,14 @@
-#. NSS Connections
-msgid "NSS Connections"
-msgstr "Połączenia NSS"
+#. =========================================================================
+#. 🌐 GLOBALNE ELEMENTY INTERFEJSU & PRZYCISKI (LuCI Core Fallbacks)
+#. =========================================================================
+msgid "Enabled"
+msgstr "Włączone"
 
-msgid "Live connection table with rates computed between polls — NSS-accelerated flows included (their counters are synced back from the firmware). The DSCP column shows classes applied by the QoS marking rules. Click a column header to sort; the row of boxes filters each column."
-msgstr "Tabela połączeń na żywo z prędkościami obliczanymi między odpytaniami — uwzględnia przepływy przyspieszane sprzętowo przez NSS (ich liczniki są synchronizowane wstecznie z oprogramowania układowego). Kolumna DSCP pokazuje klasy przypisane przez reguły znakowania QoS. Kliknij nagłówek kolumny, aby posortować; rząd pól służy do filtrowania każdej kolumny."
+msgid "Name"
+msgstr "Nazwa"
 
-msgid "Freeze"
-msgstr "Zamroź"
+msgid "Protocol"
+msgstr "Protokół"
 
 msgid "Proto"
 msgstr "Protokół"
@@ -32,7 +34,46 @@ msgstr "Prędkość"
 msgid "Total"
 msgstr "Łącznie"
 
-#. NSS Offload
+msgid "Port"
+msgstr "Port"
+
+msgid "Global"
+msgstr "Ustawienia globalne"
+
+msgid "Rules"
+msgstr "Reguły"
+
+msgid "Edit"
+msgstr "Edytuj"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Add"
+msgstr "Dodaj"
+
+msgid "Save & Apply"
+msgstr "Zapisz i zastosuj"
+
+msgid "Save"
+msgstr "Zapisz"
+
+msgid "Reset"
+msgstr "Resetuj"
+
+msgid "Freeze"
+msgstr "Zamroź"
+
+msgid "Filter..."
+msgstr "Filtruj..."
+
+msgid "Searching..."
+msgstr "Wyszukiwanie..."
+
+
+#. =========================================================================
+#. 🟢 ZAKŁADKA: STATUS ➔ ODCIĄŻENIE NSS (NSS Offload / nss.js)
+#. =========================================================================
 msgid "NSS Offload"
 msgstr "Odciążenie NSS"
 
@@ -51,23 +92,6 @@ msgstr "Odciążenie IPv4"
 msgid "IPv6 Offload"
 msgstr "Odciążenie IPv6"
 
-#. QoS Marking (NSS)
-msgid "QoS Marking (NSS)"
-msgstr "Znakowanie QoS (NSS)"
-
-msgid "NSS QoS Rules"
-msgstr "Reguły QoS NSS"
-
-msgid "Configure DSCP and priority marking for hardware-accelerated traffic."
-msgstr "Konfiguracja DSCP oraz znakowania priorytetów dla ruchu przyspieszanego sprzętowo."
-
-msgid "Traffic Class"
-msgstr "Klasa ruchu"
-
-msgid "Priority"
-msgstr "Priorytet"
-
-#. NSS Offload - Statystyki i Status
 msgid "Offload active"
 msgstr "Odciążenie aktywne"
 
@@ -79,6 +103,9 @@ msgstr "Taktowanie (Heartbeat)"
 
 msgid "NSS core load"
 msgstr "Obciążenie rdzeni NSS"
+
+msgid "NSS Core Load"
+msgstr "Obciążenie rdzenia NSS"
 
 msgid "ECM accelerated connections"
 msgstr "Połączenia przyspieszane przez ECM"
@@ -104,15 +131,17 @@ msgstr "załadowano"
 msgid "NSS offload active (wifili)"
 msgstr "Odciążenie NSS aktywne (wifili)"
 
-msgid "no NSS shaper on wan"
-msgstr "brak kształtowania ruchu NSS na porcie WAN"
+msgid "NSS offload active"
+msgstr "Odciążenie NSS aktywne"
 
-#. Firmware-attached ports
+msgid "NSS offload inactive"
+msgstr "Odciążenie NSS nieaktywne"
+
+msgid "no NSS shaper on"
+msgstr "brak kształtowania ruchu NSS na porcie"
+
 msgid "Firmware-attached ports"
 msgstr "Porty powiązane z oprogramowaniem układowym"
-
-msgid "Port"
-msgstr "Port"
 
 msgid "if_num"
 msgstr "Numer interfejsu (if_num)"
@@ -126,35 +155,58 @@ msgstr "Pakiety nadane (TX)"
 msgid "RX from firmware"
 msgstr "Odebrane z oprogramowania układowego (RX)"
 
-#. NSS QoS Marking
+msgid "Driver Status"
+msgstr "Status sterownika"
+
+msgid "Firmware Version"
+msgstr "Wersja oprogramowania układowego"
+
+msgid "Initialization Error"
+msgstr "Błąd inicjalizacji"
+
+msgid "NSS initialization failed or drivers not loaded."
+msgstr "Inicjalizacja NSS nie powiodła się lub sterowniki nie zostały załadowane."
+
+
+#. =========================================================================
+#. 🔵 ZAKŁADKA: SIEĆ ➔ POŁĄCZENIA NSS (NSS Connections / connections.js)
+#. =========================================================================
+msgid "NSS Connections"
+msgstr "Połączenia NSS"
+
+msgid "Active Connections"
+msgstr "Aktywne połączenia"
+
+msgid "NSS Accelerated"
+msgstr "Przyspieszane przez NSS"
+
+msgid "No active accelerated connections found."
+msgstr "Nie znaleziono aktywnych połączeń przyspieszanych sprzętowo."
+
+msgid "Protocol Summary"
+msgstr "Podsumowanie protokołów"
+
+msgid "Live connection table with rates computed between polls — NSS-accelerated flows included (their counters are synced back from the firmware). The DSCP column shows classes applied by the QoS marking rules. Click a column header to sort; the row of boxes filters each column."
+msgstr "Tabela połączeń na żywo z prędkościami obliczanymi między odpytaniami — uwzględnia przepływy przyspieszane sprzętowo przez NSS (ich liczniki są synchronizowane wstecznie z oprogramowania układowego). Kolumna DSCP pokazuje klasy przypisane przez reguły znakowania QoS. Kliknij nagłówek kolumny, aby posortować; rząd pól służy do filtrowania każdej kolumny."
+
+
+#. =========================================================================
+#. 🟡 ZAKŁADKA: SIEĆ ➔ ZNAKOWANIE QOS NSS (NSS QoS Marking / qos.js)
+#. =========================================================================
+msgid "QoS Marking (NSS)"
+msgstr "Znakowanie QoS (NSS)"
+
 msgid "NSS QoS Marking"
 msgstr "Znakowanie QoS NSS"
 
-msgid "DSCP marking and prioritization for the NSS-accelerated SQM. Each rule marks both directions of matching connections; the NSS firmware applies the mark to accelerated (offloaded) traffic as well. Fast-laned flows bypass the SQM queues entirely — mark sparse traffic only (games, calls, DNS), never bulk transfers."
-msgstr "Znakowanie DSCP oraz priorytetyzacja dla SQM przyspieszanego sprzętowo przez NSS. Każda reguła znakuje oba kierunki pasujących połączeń; oprogramowanie układowe NSS stosuje to znakowanie również do ruchu odciążonego (offloaded). Przepływy szybkiej ścieżki (Fast-lane) całkowicie omijają kolejki SQM — oznaczaj wyłącznie rzadki ruch (gry, połączenia głosowe, DNS), nigdy masowe transfery danych."
+msgid "NSS QoS Rules"
+msgstr "Reguły QoS NSS"
 
-#. Global
-msgid "Global"
-msgstr "Ustawienia globalne"
+msgid "Traffic Class"
+msgstr "Klasa ruchu"
 
-msgid "Master switch for all marking rules."
-msgstr "Główny przełącznik dla wszystkich reguł znakowania."
-
-msgid "Wash ingress DSCP"
-msgstr "Czyszczenie wejściowego DSCP (Wash ingress)"
-
-msgid "Reset untrusted DSCP on packets arriving from the ISP to CS0. Marking rules below still re-mark what they match."
-msgstr "Resetuje niezaufane wartości DSCP do poziomu CS0 w pakietach przychodzących od dostawcy internetu (ISP). Poniższe reguły znakowania nadal nadadzą nowe znaczniki pasującym pakietom."
-
-msgid "Wash egress DSCP"
-msgstr "Czyszczenie wyjściowego DSCP (Wash egress)"
-
-msgid "Send all traffic to the ISP as CS0. Fast-lane prioritization is unaffected — it rides the internal priority mark, not the wire DSCP."
-msgstr "Wysyła cały ruch do dostawcy internetu (ISP) jako CS0. Priorytetyzacja szybkiej ścieżki (Fast-lane) pozostaje nienaruszona — opiera się ona na wewnętrznym znaczniku priorytetu, a nie na fizycznym nagłówku DSCP."
-
-#. Rules Table
-msgid "Rules"
-msgstr "Reguły"
+msgid "Priority"
+msgstr "Priorytet"
 
 msgid "Destination ports"
 msgstr "Porty docelowe"
@@ -165,7 +217,61 @@ msgstr "Klasa DSCP"
 msgid "Fast lane"
 msgstr "Szybka ścieżka (Fast lane)"
 
-#. Przykładowe nazwy usług
+msgid "Source IP"
+msgstr "Źródłowe IP"
+
+msgid "Source ports"
+msgstr "Porty źródłowe"
+
+msgid "Destination IP"
+msgstr "Docelowe IP"
+
+msgid "Destination domain"
+msgstr "Docelowa domena"
+
+msgid "Configure DSCP and priority marking for hardware-accelerated traffic."
+msgstr "Konfiguracja DSCP oraz znakowania priorytetów dla ruchu przyspieszanego sprzętowo."
+
+msgid "Master switch for all marking rules."
+msgstr "Główny przełącznik dla wszystkich reguł znakowania."
+
+msgid "Wash ingress DSCP"
+msgstr "Czyszczenie wejściowego DSCP (Wash ingress)"
+
+msgid "Wash egress DSCP"
+msgstr "Czyszczenie wyjściowego DSCP (Wash egress)"
+
+msgid "Reset untrusted DSCP on packets arriving from the ISP to CS0. Marking rules below still re-mark what they match."
+msgstr "Resetuje niezaufane wartości DSCP do poziomu CS0 w pakietach przychodzących od dostawcy internetu (ISP). Poniższe reguły znakowania nadal nadadzą nowe znaczniki pasującym pakietom."
+
+msgid "Send all traffic to the ISP as CS0. Fast-lane prioritization is unaffected — it rides the internal priority mark, not the wire DSCP."
+msgstr "Wysyła cały ruch do dostawcy internetu (ISP) jako CS0. Priorytetyzacja szybkiej ścieżki (Fast-lane) pozostaje nienaruszona — opiera się ona na wewnętrznym znaczniku priorytetu, a nie na fizycznym nagłówku DSCP."
+
+msgid "Hosts or CIDRs, space-separated, IPv4 and/or IPv6. Empty matches any."
+msgstr "Hosty lub klasy CIDR, rozdzielone spacją, IPv4 i/lub IPv6. Pozostaw puste dla dowolnego ruchu."
+
+msgid "One port or range per entry, e.g. '443' or '27015-27030'."
+msgstr "Jeden port lub zakres na wpis, np. '443' lub '27015-27030'."
+
+msgid "DNS names, re-resolved periodically on the router. A CDN whose"
+msgstr "Nazwy DNS, odpytywane okresowo na routerze. Przydatne dla sieci CDN, których"
+
+msgid "Strict-priority lane ahead of the SQM queues, both directions."
+msgstr "Kolejka o ścisłym priorytecie przed kolejkami SQM, w obu kierunkach."
+
+msgid "DNS names, re-resolved periodically on the router. A CDN whose dynamic addresses defy IP-matching can be targeted by its name."
+msgstr "Nazwy DNS, odpytywane okresowo na routerze. Umożliwia dopasowanie sieci CDN, których dynamiczne adresy IP utrudniają filtrowanie po IP."
+
+msgid "Strict-priority lane ahead of the SQM queues, both directions. Fast-lane flows bypass the SQM queues entirely — mark sparse traffic only (games, calls, DNS), never bulk transfers."
+msgstr "Kolejka o ścisłym priorytecie przed kolejkami SQM, w obu kierunkach. Przepływy szybkiej ścieżki (Fast-lane) całkowicie omijają kolejki SQM — oznaczaj wyłącznie rzadki ruch (gry, połączenia głosowe, DNS), nigdy masowe transfery danych."
+
+msgid "DSCP marking and prioritization for the NSS-accelerated SQM. Each rule marks both directions of matching connections; the NSS firmware applies the mark to accelerated (offloaded) traffic as well. Fast-laned flows bypass the SQM queues entirely — mark sparse traffic only (games, calls, DNS), never bulk transfers."
+msgstr "Znakowanie DSCP oraz priorytetyzacja dla SQM przyspieszanego sprzętowo przez NSS. Każda reguła znakuje oba kierunki pasujących połączeń; oprogramowanie układowe NSS stosuje to znakowanie również do ruchu odciążonego (offloaded). Przepływy szybkiej ścieżki (Fast-lane) całkowicie omijają kolejki SQM — oznaczaj wyłącznie rzadki ruch (gry, połączenia głosowe, DNS), nigdy masowe transfery danych."
+
+
+#. =========================================================================
+#. 🛠️ PREDEFINIOWANE REGUŁY USŁUG DLA FORMULARZA (Fallback)
+#. =========================================================================
 msgid "Game consoles / Call of Duty"
 msgstr "Konsole do gier / Call of Duty"
 
@@ -192,35 +298,3 @@ msgstr "VoIP - strumień RTP"
 
 msgid "Video call - Zoom"
 msgstr "Wideorozmowy - Zoom"
-
-#. Elementy tabeli i nagłówki kolumn
-msgid "Enabled"
-msgstr "Włączone"
-
-msgid "Name"
-msgstr "Nazwa"
-
-msgid "Protocol"
-msgstr "Protokół"
-
-#. Przyciski akcji LuCI
-msgid "Edit"
-msgstr "Edytuj"
-
-msgid "Delete"
-msgstr "Usuń"
-
-msgid "Add"
-msgstr "Dodaj"
-
-msgid "Save & Apply"
-msgstr "Zapisz i zastosuj"
-
-msgid "Save"
-msgstr "Zapisz"
-
-msgid "Reset"
-msgstr "Resetuj"
-
-msgid "no NSS shaper on"
-msgstr "brak kształtowania ruchu NSS na porcie"
