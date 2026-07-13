@@ -447,18 +447,20 @@ jobs:
           rm -rf package/kernel/rtl8812au-ct
           rm -rf package/network/utils/xdp-tools
 
-          # 🛠️ NAKŁADANIE PATCHA NA CONNECTIONS.JS (ZABEZPIECZENIE PRZED ZAMAZYWANIEM)
-          TARGET_JS="feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/connections.js"
-          PATCH_FILE="${{ github.workspace }}/builder/patches/feeds/luci/0001-status-connections-show-nss-dscp-class.patch"
-
-          if [ -f "$TARGET_JS" ] && [ -f "$PATCH_FILE" ]; then
-              # Wywołanie patcha bezpośrednio w katalogu docelowym modułu feedu
-              patch -p1 -d feeds/luci < "$PATCH_FILE"
-              echo "--> SUCCESS: Patch dla connections.js (NSS DSCP) został pomyślnie zaaplikowany na gotowe feedy LuCI."
-          else
-              echo "ERROR: Nie znaleziono pliku docelowego LuCI lub pliku patcha w builderze!" >&2
-              exit 1
-          fi
+          # 🛠️ AUTOMATYCZNA PĘTLA PATCHUJĄCA FEEDY (ZABEZPIECZONA ŚCIEŻKA WORKSPACE)
+          shopt -s nullglob
+          for p in "${{ github.workspace }}/builder/patches/feeds"/*/*.patch; do
+            feed="feeds/$(basename "$(dirname "$p")")"
+            if [ -d "$feed" ]; then
+              if patch -p1 -d "$feed" --dry-run --forward <"$p" >/dev/null 2>&1; then
+                echo "--> Patching $feed with $(basename "$p")"
+                patch -p1 -d "$feed" --forward <"$p"
+              else
+                echo "--> Skipping $(basename "$p") (already applied or not applicable)"
+              fi
+            fi
+          done
+          shopt -u nullglob
 
       - name: Build
         working-directory: openwrt
