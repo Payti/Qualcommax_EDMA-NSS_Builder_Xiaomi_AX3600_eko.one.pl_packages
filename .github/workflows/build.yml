@@ -441,15 +441,16 @@ jobs:
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+
           echo "### Usuwanie pakietów dahdi-linux, rtl8812au-ct, xdp-tools ponieważ się nie kompilują! ###"
           rm -rf package/feeds/telephony/dahdi-linux
           rm -rf package/kernel/rtl8812au-ct
           rm -rf package/network/utils/xdp-tools
-          
+
           # 🛠️ NAKŁADANIE PATCHA NA CONNECTIONS.JS PO AKTUALIZACJI FEEDÓW (ZABEZPIECZENIE PRZED ZAMAZYWANIEM)
           TARGET_JS="feeds/luci/modules/luci-mod-status/htdocs/luci-static/resources/view/status/connections.js"
           PATCH_FILE="${{ github.workspace }}/builder/devices/xiaomi_ax3600/patches/0001-status-connections-show-nss-dscp-class.patch"
-          
+
           if [ -f "$TARGET_JS" ] && [ -f "$PATCH_FILE" ]; then
               patch -p1 < "$PATCH_FILE"
               echo "--> SUCCESS: Patch dla connections.js (NSS DSCP) został pomyślnie zaaplikowany na gotowe feedy LuCI."
