@@ -52,6 +52,21 @@ log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
+# 1b. Apply local patches to feed packages (patches/feeds/<feed>/*.patch, paths
+#     relative to the feed root). Currently only the NSS DSCP column on the
+#     built-in Status -> Realtime -> Connections page.
+shopt -s nullglob
+for p in "$BUILDER_REPO"/patches/feeds/*/*.patch; do
+  feed="feeds/$(basename "$(dirname "$p")")"
+  if patch -p1 -d "$feed" --dry-run --forward <"$p" >/dev/null 2>&1; then
+    log::info "Patching $feed with $(basename "$p")"
+    patch -p1 -d "$feed" --forward <"$p"
+  else
+    log::info "Skipping $(basename "$p") (already applied or not applicable)"
+  fi
+done
+shopt -u nullglob
+
 # 2. Assemble .config from the device config, then resolve.
 log::info "Assembling .config from devices/$DEVICE/config"
 cp "$DEVICE_DIR/config" .config
