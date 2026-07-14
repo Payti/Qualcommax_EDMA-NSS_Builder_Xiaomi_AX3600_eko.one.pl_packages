@@ -145,6 +145,69 @@ AX3600 (IPQ8071A, 512 MB), `NSS.FW.12.5-210`, kernel 6.18 — details in the
 
 ---
 
+## NSS offload support matrix
+
+What the firmware data plane accelerates on this stack (whole IPQ807x family).
+Legend: ✅ offloaded & validated · 🟨 supported in code, opt-in, not validated
+here · ⬜ deliberately not carried (software path is used) · ❌ not available on
+this platform/firmware.
+
+| Feature | IPQ807x | Notes |
+|---|:---:|---|
+| IPv4 NAT / routing | ✅ | ECM, line rate, host ~idle |
+| IPv6 routing | ✅ | ECM |
+| PPPoE (incl. over 802.1Q VLAN) | ✅ | validated on a PPPoE/VLAN WAN |
+| 802.1Q VLAN | ✅ | ECM VLAN-tagged flows |
+| SQM shaper (nsstbl + nssfq_codel) | ✅ | `nss-edma.qos`; zero-bufferbloat verified |
+| Ingress shaping (IGS / nssmirred) | ✅ | `act_nssmirred` → ifb |
+| DSCP / mark classification | ✅ | ECM DSCP + mark classifiers |
+| CoDel ECN marking | ❌ | the 12.5 firmware does not ECN-mark (verified at firmware level); 11.4 not verified |
+| Wi-Fi AP (wifili) | ✅ | both radios (QCN5024 + QCN5054) |
+| Wi-Fi STA | 🟨 | wifili path present; AP is what's validated |
+| Wi-Fi WDS | 🟨 | not validated |
+| Wi-Fi mesh | ✅¹ | offloaded with the NSS firmware 11.4 build option (`ATH11K_NSS_MESH_SUPPORT`); on the default 12.5 firmware mesh stays on the host path |
+| Wi-Fi AP-VLAN | ❌ | broken in the ath11k driver |
+| Bridge (wired LAN, same-subnet L2) | ✅ | `nss-bridge-mgr`; firmware hardware-bridges the wired ports (host idle). Wi-Fi members stay host-side until Wi-Fi offload |
+| Inter-subnet routing (two subnets on one bridge) | ✅ | same-bridge hairpin route `lan1→lan2` accelerated (`accel_mode=2`, host flat), no config change |
+| Multicast (same-subnet / bridged) | ✅ | `qca-mcs` snooping; PPE hardware-bridges to snooped members, host flat |
+| Multicast (routed across subnets) | 🟨 | ECM `mc_create` path + kernel ipmr hooks built; needs a multicast-routing daemon (igmpproxy/smcroute) and a two-VIF topology |
+| GRE | 🟨 | ECM support builds with `kmod-gre`; not in the default config |
+| MAP-T / DS-Lite | 🟨 | needs `kmod-nat46` |
+| 6RD / IPIP6 (SIT) | 🟨 | needs `kmod-sit` / `kmod-ip6-tunnel` |
+| VXLAN | 🟨 | needs `kmod-vxlan` |
+| OVS bridge | ⬜ | `nss-bridge-mgr` OVS path compiled out; would need `kmod-qca-ovsmgr` |
+| MACVLAN | 🟨 | kernel patch carried; needs `kmod-macvlan` |
+| L2TPv2 / PPTP | ⬜ | ECM interface off — those kernel hooks are not ported |
+| Bonding / LAG | ⬜ | kernel bonding hooks not carried |
+| IPsec (ESP) | ❌ | not viable on IPQ807x; `nss-crypto`/`cfi` not carried |
+| TLS / DTLS / CAPWAP | ❌ | not supported (matches the vendor matrix) |
+
+The opt-in rows are build-verified against this tree: selecting `kmod-nat46`,
+`kmod-vxlan`, `kmod-macvlan`, `kmod-gre`, `kmod-sit` or `kmod-ip6-tunnel` turns
+the matching ECM interface support on and links cleanly. Bonding/LAG and
+L2TPv2/PPTP stay off by design — their QCA kernel hooks are not carried, and
+the ECM package forces those interface types off so selecting the kmods cannot
+break the build. `kmod-ipsec` also builds, but ESP flows stay on the host path
+(no NSS crypto on this platform).
+
+All IPQ807x-family boards carry the NSS device-tree nodes; per-board validation
+reports are the open item.
+
+### ¹ 802.11s mesh offload (firmware 11.4 build option)
+
+Mesh offload is a firmware capability: NSS firmware 11.4.0.5 is the only
+line that supports mesh interfaces — every newer published firmware
+rejects them at the firmware level (verified on 12.5-210). Selecting
+`ATH11K_NSS_MESH_SUPPORT` therefore requires `NSS_FIRMWARE_VERSION_11_4`
+(same firmware tarball). Everything else works on 11.4 as on 12.5 —
+NAT/routing, PPPoE/VLAN, wifili AP offload, bridge, multicast, and SQM
+with the same `nss-edma.qos` script (the qdisc module selects the
+firmware's statistics format at build time); all verified live on
+11.4.0.5-6. On 12.5 images, mesh interfaces keep Wi-Fi on the host path
+and everything wired stays offloaded.
+
+---
+
 ## Build it yourself
 
 Everything is parameterized in the `env:` block of
