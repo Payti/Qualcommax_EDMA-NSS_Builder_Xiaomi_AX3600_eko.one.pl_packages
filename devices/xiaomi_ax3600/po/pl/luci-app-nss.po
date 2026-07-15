@@ -299,7 +299,13 @@ msgstr "VoIP - strumień RTP"
 msgid "Video call - Zoom"
 msgstr "Wideorozmowy - Zoom"
 
-#. Nowe nagłówki kolumn w tabeli portów
+#. Nowe nagłówki kolumn z tabeli portów (Dokładnie jak na zrzucie ekranu)
+msgid "TX via host"
+msgstr "Nadawanie przez hosta (TX)"
+
+msgid "RX to host"
+msgstr "Odbiór do hosta (RX)"
+
 msgid "L2 offloaded"
 msgstr "Odciążone L2"
 
@@ -309,13 +315,7 @@ msgstr "Odciążone nadawanie (TX)"
 msgid "RX offloaded"
 msgstr "Odciążone odbieranie (RX)"
 
-msgid "RX from host"
-msgstr "Odebrane z hosta (RX)"
-
-msgid "TX to host"
-msgstr "Nadane do hosta (TX)"
-
-#. Długi komunikat informacyjny na samym dole strony statusu
-msgid "Offloaded packets are forwarded inside the firmware and never reach the host. \"to host\" / \"from host\" is the static / ordinary exception path — what was not offloaded — so higher numbers mean offload is working. Enqueue and non-local packets take the slow ordinary exception path, which counters specific advantages of the fast path but ensures total transport path, a failure inside offloaded packet processing loop will drop package as well but will keep counter inside respective error register. The stats update rate depends on firmware internal scheduler."
-msgstr "Pakiety odciążone (offloaded) są przekazywane bezpośrednio wewnątrz oprogramowania układowego i nigdy nie trafiają do procesora głównego (hosta). Ścieżki „do hosta” / „z hosta” stanowią statyczną, zwykłą ścieżkę wyjątków dla ruchu, który nie został odciążony — wyższe wartości w kolumnach odciążonych oznaczają więc, że akceleracja sprzętowa działa prawidłowo. Pakiety zakolejkowane oraz ruch lokalny trafiają na wolniejszą, standardową ścieżkę wyjątków, co ogranicza specyficzne zalety szybkiej ścieżki (fast path), lecz gwarantuje pełną drożność transmisji. Błąd wewnątrz pętli przetwarzania pakietów odciążonych spowoduje odrzucenie pakietu, zwiększając licznik w odpowiednim rejestrze błędów. Częstotliwość odświeżania statystyk zależy od wewnętrznego harmonogramu oprogramowania układowego."
+#. Kompletny, długi opis ze stopki (Zaktualizowany o brakujące zdania Juliusa)
+msgid "Offloaded packets are forwarded inside the firmware and never reach the host. \"via host\" / \"to host\" is the host<->firmware exception path — what was not offloaded — so low numbers there mean offload is working. Broadcast and multicast discovery, connection setup, short-lived flows and traffic addressed to the router itself always take that path; a flow is only offloaded once it is established, so a quiet port that carries little else shows a low offloaded share. Port totals are on Status → Overview."
+msgstr "Pakiety odciążone (offloaded) są przekazywane bezpośrednio wewnątrz oprogramowania układowego i nigdy nie trafiają do procesora głównego (hosta). Ścieżki „przez hosta” / „do hosta” stanowią ścieżkę wyjątków między hostem a oprogramowaniem układowym dla ruchu, który nie został odciążony — niskie wartości w tych kolumnach oznaczają więc, że akceleracja sprzętowa działa prawidłowo. Rozgłoszenia (broadcast), pakiety rozsyłania grupowego (multicast), proces nawiązywania połączeń, krótkotrwałe przepływy oraz ruch adresowany bezpośrednio do samego routera zawsze trafiają na tę ścieżkę; przepływ zostaje odciążony dopiero po jego pełnym ustanowieniu, dlatego bezczynny port obsługujący niewiele ruchu wykaże niski udział pakietów akcelerowanych. Łączne statystyki portów znajdują się w zakładce Status → Przegląd."
 
