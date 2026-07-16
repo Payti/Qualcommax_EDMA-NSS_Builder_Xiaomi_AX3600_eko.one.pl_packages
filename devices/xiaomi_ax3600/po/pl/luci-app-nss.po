@@ -319,3 +319,21 @@ msgstr "Odciążone odbieranie (RX)"
 msgid "Offloaded packets are forwarded by the firmware and never reach the host. \"via host\" / \"to host\" is the host↔firmware exception path — what was not offloaded — so low numbers there mean offload is working. Broadcast and multicast discovery, connection setup, short-lived flows and traffic addressed to the router itself always take that path: a flow is only offloaded once it is established, so a quiet port that carries little else shows a low offloaded share. Port totals are on Status → Overview."
 msgstr "Pakiety odciążone (offloaded) są przekazywane przez oprogramowanie układowe NSS i nigdy nie trafiają do procesora głównego (hosta). Ścieżki „przez hosta (TX)” / „do hosta (RX)” stanowią ścieżkę wyjątków między hostem a oprogramowaniem układowym dla ruchu, który nie został odciążony — niskie wartości w tych kolumnach oznaczają więc, że akceleracja sprzętowa działa prawidłowo. Rozgłoszenia (broadcast), pakiety rozsyłania grupowego (multicast), proces nawiązywania połączeń, krótkotrwałe przepływy oraz ruch adresowany bezpośrednio do samego routera zawsze trafiają na tę ścieżkę: przepływ zostaje odciążony dopiero po jego pełnym ustanowieniu, dlatego bezczynny port obsługujący niewiele ruchu wykaże niski udział pakietów akcelerowanych. Łączne statystyki portów znajdują się w zakładce Status → Przegląd."
 
+#. Plik: luci-nss-qos.js (Komunikaty walidacji formularza edycji reguł)
+msgid "Expecting: space-separated list of IPv4/IPv6 addresses or CIDRs"
+msgstr "Oczekiwano: rozdzielonej spacjami listy adresów IPv4/IPv6 lub klas CIDR"
+
+msgid "Expecting: space-separated list of ports or port ranges"
+msgstr "Oczekiwano: rozdzielonej spacjami listy portów lub zakresów portów"
+
+msgid "Expecting: space-separated list of hostnames"
+msgstr "Oczekiwano: rozdzielonej spacjami listy nazw domenowych (hostnames)"
+
+
+#. Plik: luci-nss-connections.js (Filtrowanie i statusy tabeli połączeń live)
+msgid "Network"
+msgstr "Sieć"
+
+msgid "Collecting data..."
+msgstr "Zbieranie danych..."
+
