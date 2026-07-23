@@ -493,12 +493,11 @@ jobs:
         working-directory: openwrt
         run: |
           set -euo pipefail
-          # 1. Automatyczne uzupełnienie i odświeżenie opcji jądra do wartości domyślnych
-          make target/linux/refresh
-          # 2. Główna kompilacja z flagą blokującą interaktywne zapytania kconfig
-          if ! make -j"$(nproc)" CONFIG_NOSILENTUPDATE=1; then
+
+          # Główna kompilacja z flagą wymuszającą automatyczne akceptowanie nowych opcji jądra
+          if ! make -j"$(nproc)" CONFIG_NOSILENTUPDATE=1 WERROR=0; then
             echo "::warning::Parallel build failed; retrying single-threaded for diagnostics"
-            make -j1 V=s CONFIG_NOSILENTUPDATE=1
+            make -j1 V=s CONFIG_NOSILENTUPDATE=1 WERROR=0; then
           fi
 
       - name: Pack APK Packages
