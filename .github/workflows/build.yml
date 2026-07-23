@@ -312,22 +312,6 @@ jobs:
                 echo "CONFIG_LUCI_LANG_pl=y"
               } >> "$CONFIG_FILE"
               echo "Successfully patched config with CONFIG_NSS_FIRMWARE_VERSION_11_4=y and added all absolute NSS components"
-
-              # =========================================================================
-              # 🛠️ WSTRZYKNIĘCIE OPCJI TEE BEZPOŚREDNIO DO KONFIGURACJI JĄDRA LINUX
-              # =========================================================================
-              KERNEL_CONFIG_TARGET=$(find ${{ github.workspace }}/openwrt/target/linux/qualcommax/ -name "config-*" | head -n 1)
-              if [ -f "$KERNEL_CONFIG_TARGET" ]; then
-                  {
-                    echo "CONFIG_TEE=m"
-                    echo "CONFIG_OPTEE=m"
-                    echo "# CONFIG_OPTEE_INSECURE_LOAD_IMAGE is not set"
-                  } >> "$KERNEL_CONFIG_TARGET"
-                  echo "--> SUCCESS: Pomyślnie załatano plik konfiguracyjny jądra Linux ($KERNEL_CONFIG_TARGET) o brakujące opcje TEE."
-              else
-                  echo "WARNING: Nie znaleziono pliku config jądra qualcommax do załatania!"
-              fi
-              # =========================================================================
             else
               {
                 echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
@@ -509,9 +493,14 @@ jobs:
         working-directory: openwrt
         run: |
           set -euo pipefail
-          if ! make -j"$(nproc)"; then
+          
+          # 1. Automatyczne uzupełnienie i odświeżenie opcji jądra do wartości domyślnych
+          make target/linux/refresh
+          
+          # 2. Główna kompilacja z flagą blokującą interaktywne zapytania kconfig
+          if ! make -j"$(nproc)" CONFIG_NOSILENTUPDATE=1; then
             echo "::warning::Parallel build failed; retrying single-threaded for diagnostics"
-            make -j1 V=s
+            make -j1 V=s CONFIG_NOSILENTUPDATE=1
           fi
 
       - name: Pack APK Packages
