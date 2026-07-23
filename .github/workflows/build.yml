@@ -494,10 +494,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Główna kompilacja z flagą wymuszającą automatyczne akceptowanie nowych opcji jądra
+          # Główna kompilacja z flagami automatycznego zatwierdzania opcji jądra (syncconfig)
           if ! make -j"$(nproc)" CONFIG_NOSILENTUPDATE=1 WERROR=0; then
             echo "::warning::Parallel build failed; retrying single-threaded for diagnostics"
-            make -j1 V=s CONFIG_NOSILENTUPDATE=1 WERROR=0; then
+            make -j1 V=s CONFIG_NOSILENTUPDATE=1 WERROR=0
           fi
 
       - name: Pack APK Packages
