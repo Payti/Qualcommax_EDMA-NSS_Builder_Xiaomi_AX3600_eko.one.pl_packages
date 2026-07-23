@@ -310,11 +310,23 @@ jobs:
                 echo "CONFIG_PACKAGE_luci-i18n-nss-pl=y"
                 echo "CONFIG_PACKAGE_luci-i18n-nssqos-pl=y"
                 echo "CONFIG_LUCI_LANG_pl=y"
-                echo "CONFIG_TEE=m"
-                echo "CONFIG_OPTEE=m"
-                echo "# CONFIG_OPTEE_INSECURE_LOAD_IMAGE is not set"
               } >> "$CONFIG_FILE"
               echo "Successfully patched config with CONFIG_NSS_FIRMWARE_VERSION_11_4=y and added all absolute NSS components"
+
+              # =========================================================================
+              # 🔒 WYMUSZENIE DEKLARACJI OPCJI KERNELA TEE / OP-TEE / QCOMTEE DLA 11.4
+              # =========================================================================
+              KERNEL_CONFIG_TARGET=$(find ${{ github.workspace }}/openwrt/target/linux/qualcommax/ -name "config-6.18" | head -n 1)
+              if [ -f "$KERNEL_CONFIG_TARGET" ]; then
+                  {
+                    echo "CONFIG_TEE=m"
+                    echo "CONFIG_OPTEE=m"
+                    echo "CONFIG_QCOMTEE=m"
+                    echo "# CONFIG_OPTEE_INSECURE_LOAD_IMAGE is not set"
+                  } >> "$KERNEL_CONFIG_TARGET"
+                  echo "--> SUCCESS: Wszystkie brakujące deklaracje jądra TEE zostały dopisane do $KERNEL_CONFIG_TARGET"
+              fi
+              # =========================================================================
             else
               {
                 echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
