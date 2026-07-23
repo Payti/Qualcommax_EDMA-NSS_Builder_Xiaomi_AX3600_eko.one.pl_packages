@@ -493,10 +493,8 @@ jobs:
         working-directory: openwrt
         run: |
           set -euo pipefail
-          
           # 1. Automatyczne uzupełnienie i odświeżenie opcji jądra do wartości domyślnych
           make target/linux/refresh
-          
           # 2. Główna kompilacja z flagą blokującą interaktywne zapytania kconfig
           if ! make -j"$(nproc)" CONFIG_NOSILENTUPDATE=1; then
             echo "::warning::Parallel build failed; retrying single-threaded for diagnostics"
