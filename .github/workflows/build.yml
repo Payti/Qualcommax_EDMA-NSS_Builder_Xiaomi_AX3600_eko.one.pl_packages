@@ -310,6 +310,9 @@ jobs:
                 echo "CONFIG_PACKAGE_luci-i18n-nss-pl=y"
                 echo "CONFIG_PACKAGE_luci-i18n-nssqos-pl=y"
                 echo "CONFIG_LUCI_LANG_pl=y"
+                echo "CONFIG_TEE=m"
+                echo "CONFIG_OPTEE=m"
+                echo "# CONFIG_OPTEE_INSECURE_LOAD_IMAGE is not set"
               } >> "$CONFIG_FILE"
               echo "Successfully patched config with CONFIG_NSS_FIRMWARE_VERSION_11_4=y and added all absolute NSS components"
             else
@@ -493,11 +496,9 @@ jobs:
         working-directory: openwrt
         run: |
           set -euo pipefail
-
-          # Główna kompilacja z flagami automatycznego zatwierdzania opcji jądra (syncconfig)
-          if ! make -j"$(nproc)" CONFIG_NOSILENTUPDATE=1 WERROR=0; then
+          if ! make -j"$(nproc)"; then
             echo "::warning::Parallel build failed; retrying single-threaded for diagnostics"
-            make -j1 V=s CONFIG_NOSILENTUPDATE=1 WERROR=0
+            make -j1 V=s
           fi
 
       - name: Pack APK Packages
