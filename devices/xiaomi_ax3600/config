@@ -54,7 +54,6 @@ CONFIG_LUA_ECO_MBEDTLS=y
 
 ## Additional Packages and Utilities
 CONFIG_PACKAGE_curl=y
-CONFIG_PACKAGE_kmod-tcp-bbr=y
 CONFIG_LIBCURL_MBEDTLS=y
 CONFIG_LIBCURL_OPENSSL=n
 
@@ -71,9 +70,6 @@ CONFIG_ATH11K_DEBUGFS_HTT_STATS=n
 # nss_stats - A-MSDU aggregation, OFDMA and MPDU retry counters for offloaded
 # stations - plus the ext tx/rx stats histograms).
 CONFIG_ATH11K_DEBUGFS_STA=y
-
-# Disables thermal throttling support for ath11k.
-CONFIG_ATH11K_THERMAL=n
 
 ## NSS data plane + connection offload (ECM, PPPoE).
 ## kmod-qca-ppe-nss (the data-plane glue) is pulled in by kmod-qca-nss-drv.
