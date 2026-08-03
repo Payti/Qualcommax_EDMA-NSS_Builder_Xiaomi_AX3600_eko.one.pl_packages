@@ -1,0 +1,28 @@
+--- a/drivers/net/ovpn/tcp.c
++++ b/drivers/net/ovpn/tcp.c
+@@ -168,8 +168,13 @@ static void ovpn_tcp_close(struct sock *
+ 	module_put(THIS_MODULE);
+ }
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
++static int ovpn_tcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
++			    int flags)
++#else
+ static int ovpn_tcp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+ 			    int noblock, int flags, int *addr_len)
++#endif
+ {
+ 	struct ovpn_struct *ovpn = sk->sk_user_data;
+ 	int ret;
+@@ -182,7 +187,11 @@ static int ovpn_tcp_recvmsg(struct sock
+ 	if (unlikely(!ovpn))
+ 		return -EINVAL;
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
++	ret = ovpn_orig_tcp_prot.recvmsg(sk, msg, len, flags);
++#else
+ 	ret = ovpn_orig_tcp_prot.recvmsg(sk, msg, len, noblock, flags, addr_len);
++#endif
+ 
+ 	if (ret == -EAGAIN) {
+ 		/* clean up and allow retry if needed */
