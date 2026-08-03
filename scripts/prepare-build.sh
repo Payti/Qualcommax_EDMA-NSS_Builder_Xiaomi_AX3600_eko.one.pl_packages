@@ -55,11 +55,10 @@ log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
-# 1b. Apply local patches to feed packages (patches/feeds/<feed>/*.patch, paths
-#     relative to the feed root). Currently only the NSS DSCP column on the
-#     built-in Status -> Realtime -> Connections page.
+# 1b. Apply local patches to feed packages (patches/feeds/<packages>/<kernel>/<feed>/*.patch, paths
+#     relative to the feed root).
 shopt -s nullglob
-for p in "$BUILDER_REPO"/patches/feeds/*/*.patch; do
+for p in "$BUILDER_REPO"/patches/feeds/*/*/*/*.patch; do
   feed="feeds/$(basename "$(dirname "$p")")"
   if patch -p1 -d "$feed" --dry-run --forward <"$p" >/dev/null 2>&1; then
     log::info "Patching $feed with $(basename "$p")"
