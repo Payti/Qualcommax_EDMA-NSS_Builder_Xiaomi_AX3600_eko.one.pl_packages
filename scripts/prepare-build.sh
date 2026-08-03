@@ -120,5 +120,15 @@ done
 if [[ -f files/etc/ssh/sshd_config ]]; then
   chmod 0600 files/etc/ssh/sshd_config
 fi
+# Skopiuj łatkę (patch) z kodem C dla modułu ovpn-dco we właściwe miejsce 
+# przed rozpoczęciem procesu pobierania źródeł (make package/.../compile)
+log::info "Copying source patches for ovpn-dco..."
+
+# 1. Tworzymy katalog, w którym system OpenWrt naturalnie przechowuje łatki dla tego pakietu.
+# Parametr -p gwarantuje, że nie pojawi się błąd, jeśli podkatalogi już istnieją.
+mkdir -p feeds/packages/kernel/ovpn-dco/patches/
+
+# 2. Kopiujemy plik patcha z głębokiej struktury repozytorium do struktury OpenWrt.
+cp "$BUILDER_REPO"/patches/feeds/packages/kernel/ovpn-dco/patches/100-linux-6.18-recvmsg-compat.patch feeds/packages/kernel/ovpn-dco/patches/
 
 log::info "Build environment ready for variant '$VARIANT' on device '$DEVICE'."
