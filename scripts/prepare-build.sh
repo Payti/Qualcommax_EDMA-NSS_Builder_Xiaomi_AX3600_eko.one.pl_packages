@@ -58,7 +58,7 @@ log::info "Updating + installing all feeds"
 # 1b. Apply local patches to feed packages (patches/feeds/<packages>/<kernel>/<feed>/*.patch, paths
 #     relative to the feed root).
 shopt -s nullglob
-for p in "$BUILDER_REPO"/patches/feeds/*/*/*/*.patch; do
+for p in "$BUILDER_REPO"/patches/feeds/*/*.patch; do
   feed="feeds/$(basename "$(dirname "$p")")"
   if patch -p1 -d "$feed" --dry-run --forward <"$p" >/dev/null 2>&1; then
     log::info "Patching $feed with $(basename "$p")"
