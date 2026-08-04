@@ -484,10 +484,11 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-          echo "### Usuwanie pakietów dahdi-linux, rtl8812au-ct, xdp-tools ponieważ się nie kompilują! ###"
+          echo "### Usuwanie pakietów dahdi-linux, rtl8812au-ct, xdp-tools, ovpn-dco ponieważ się nie kompilują! ###"
           rm -rf package/feeds/telephony/dahdi-linux
           rm -rf package/kernel/rtl8812au-ct
           rm -rf package/network/utils/xdp-tools
+          rm -rf feeds/packages/kernel/ovpn-dco
 
           # 🛠️ AUTOMATYCZNA PĘTLA PATCHUJĄCA FEEDY (ZABEZPIECZONA ŚCIEŻKA WORKSPACE)
           shopt -s nullglob
