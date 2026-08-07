@@ -488,7 +488,7 @@ jobs:
           rm -rf package/feeds/telephony/dahdi-linux
           rm -rf package/kernel/rtl8812au-ct
           rm -rf package/network/utils/xdp-tools
-          rm -rf feeds/packages/kernel/ovpn-dco
+          # rm -rf feeds/packages/kernel/ovpn-dco
 
           # 🛠️ AUTOMATYCZNA PĘTLA PATCHUJĄCA FEEDY (ZABEZPIECZONA ŚCIEŻKA WORKSPACE)
           shopt -s nullglob
