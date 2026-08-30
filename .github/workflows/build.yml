@@ -5,6 +5,15 @@ name: Build
 # All build parameters live in the `env:` block below — it is the one file you edit.
 on:
   workflow_dispatch:
+    inputs:
+      enable_tmate:
+        description: 'Enable tmate SSH debug session for this manual run'
+        required: false
+        default: 'no'
+        type: choice
+        options:
+          - 'no'
+          - 'yes'
   push:
     branches: [main]
     paths:
@@ -75,12 +84,12 @@ jobs:
           sudo apt-get install -y \
             bzip2 g++ gawk gcc git glibc-source libncurses-dev make rsync mc
 
-      - name: Start tmate session in background (5 min timeout) for SSH login
+      # Enable only for manual runs by the repo owner to avoid blocking scheduled/push builds.
+      - name: Start tmate session for SSH login
+        if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'Payti' && inputs.enable_tmate == 'yes' }}
         uses: mxschmitt/action-tmate@v3
         with:
           limit-access-to-actor: true
-          detached: true
-          connect-timeout-seconds: 300
 
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
