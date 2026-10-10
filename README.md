@@ -70,7 +70,7 @@ included desktop-router config:
 | **NSS data plane** | `kmod-qca-nss-drv` + the `kmod-qca-ppe-nss` glue |
 | **Connection offload** | ECM (`kmod-qca-nss-ecm`), PPPoE manager (`kmod-qca-nss-drv-pppoe`) — IPv4 NAT, IPv6 routing, PPPoE-over-VLAN |
 | **Bridge offload** | `kmod-qca-nss-drv-bridge-mgr` — wired LAN bridging in hardware |
-| **Multicast** | `kmod-qca-mcs` — same-subnet multicast hardware-bridged to snooped members |
+| **multicast** | `kmod-qca-nss-ecm` - The mroute kernel options give ECM the MFC offload hooks; ECM reads the bridge's own multicast database for the LAN ports|
 | **SQM** | NSS qdiscs (`-qdisc`/`-igs`) + `sqm-scripts-nss` (`nss-edma.qos`, DSCP fast lane both directions) + `luci-app-sqm`. Ships as a **disabled template**: set `download`/`upload` to ~90-95 % of your measured line rate and enable it (LuCI **Network → SQM** or `uci`) — there is no safe universal default rate |
 | **QoS marking** | `nssqos` + `luci-app-nssqos` — DSCP marking & fast-lane prioritization rules (CLI `/etc/config/nssqos`, LuCI **Network → QoS Marking (NSS)**) + live per-flow viewer (**Status → NSS Connections**), effective on accelerated flows |
 | **Wi-Fi** | ath11k NSS offload (wifili) on both radios (`CONFIG_ATH11K_NSS_SUPPORT`); enabled by default (SSID `OpenWrt`, WPA2/WPA3, password `openwrt-nss` — change it) |
