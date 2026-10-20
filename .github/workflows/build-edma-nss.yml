@@ -235,10 +235,10 @@ jobs:
             DATE_LINE="Build time: $CURRENT_BUILD_TIME"
 
             VERSION_PADDING=$(printf '\%-74s' "$VERSION_LINE")
-            FINAL_VERSION_ROW=" | ${VERSION_PADDING}|"
+            FINAL_VERSION_ROW="| ${VERSION_PADDING}|"
 
             DATE_PADDING=$(printf '\%-74s' "$DATE_LINE")
-            FINAL_DATE_ROW=" | ${DATE_PADDING}|"
+            FINAL_DATE_ROW="| ${DATE_PADDING}|"
 
             sed -i "s#.*VERSION_PLACEHOLDER.*#$FINAL_VERSION_ROW#g" files/etc/banner
             sed -i "s#.*DATE_PLACEHOLDER.*#$FINAL_DATE_ROW#g" files/etc/banner
