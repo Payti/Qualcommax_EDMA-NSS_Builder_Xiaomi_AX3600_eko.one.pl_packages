@@ -1,18 +1,10 @@
 #!/usr/bin/env bash
 # Prepare a checked-out OpenWrt tree for the build:
 #   1. append the custom feeds and run feeds update/install
-#   2. assemble .config from the device config, run defconfig
-#   3. disable bundling of custom feeds into the image
-#   4. layer overlay files: device -> device/variant (most specific wins)
-#
-# Required env:
-#   OPENWRT_DIR   path to the checked-out OpenWrt source (a git work tree)
-#   BUILDER_REPO  path to this repo
-#   VARIANT       variant id (selects devices/<device>/files.<variant>)
-#   DEVICE        device id (selects devices/<device>/)
-#
-# Optional env:
-#   FEEDS         newline-separated `src-git <name> <url>` lines to append to feeds.conf
+#   2. remove recursive dependency packages
+#   3. assemble .config from the device config, run defconfig
+#   4. disable bundling of custom feeds into the image
+#   5. layer overlay files: device -> device/variant (most specific wins)
 
 set -euo pipefail
 
@@ -50,6 +42,11 @@ fi
 log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a
+
+# 1a. Usuwa pakiety wywołujące błędy rekurencji w Kconfig (np. squeezelite-custom)
+log::info "Cleaning up problematic recursive packages..."
+find feeds/obsy -name "*squeezelite*" -exec rm -rf {} + 2>/dev/null || true
+find package/feeds/obsy -name "*squeezelite*" -exec rm -rf {} + 2>/dev/null || true
 
 # 1b. Apply local patches to feed packages (patches/feeds/*/*.patch)
 shopt -s nullglob
