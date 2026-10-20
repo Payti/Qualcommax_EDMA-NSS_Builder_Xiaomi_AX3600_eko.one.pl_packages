@@ -19,7 +19,8 @@ on:
     paths:
       - 'devices/**'
       - 'scripts/**'
-      - '.github/workflows/build.yml'
+      - 'patches/**'
+      - '.github/workflows/build-edma-nss.yml'
   schedule:
     - cron: "0 */2 * * *"
 
@@ -128,13 +129,15 @@ jobs:
 
             if [ "${{ matrix.nss_version }}" = "nss_11.4" ]; then
               {
+                # Profil pamięci dla IPQ
                 echo "CONFIG_IPQ_MEM_PROFILE_512=y"
                 echo "CONFIG_KERNEL_IPQ_MEM_PROFILE=512"
                 echo "CONFIG_PACKAGE_kmod-qca-mcs=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv=y"
+
+                # 1. Wersja Firmware oraz Podstawa Sterownika Jądra
                 echo "CONFIG_NSS_FIRMWARE_VERSION_11_4=y"
                 echo "CONFIG_PACKAGE_nss-firmware=y"
-                echo "CONFIG_PACKAGE_kmod-qca-nss-drv=y"
                 echo "CONFIG_NSS_DRV_BRIDGE_ENABLE=y"
                 echo "CONFIG_NSS_DRV_IGS_ENABLE=y"
                 echo "CONFIG_NSS_DRV_IPV6_ENABLE=y"
@@ -144,6 +147,8 @@ jobs:
                 echo "CONFIG_NSS_DRV_VIRT_IF_ENABLE=y"
                 echo "CONFIG_NSS_DRV_WIFIOFFLOAD_ENABLE=y"
                 echo "CONFIG_PACKAGE_MAC80211_NSS_SUPPORT=y"
+
+                # 2. Architektura bazowa, Sieć, Przekierowania i Filtry
                 echo "CONFIG_PACKAGE_kmod-qca-nss-ifb=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-netlink=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-mirror=y"
@@ -153,6 +158,8 @@ jobs:
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-netfilter=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-ecm=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-msc=y"
+
+                # 3. Klienci Sieciowi, Tunele, Wi-Fi i Protokoły WAN
                 echo "CONFIG_PACKAGE_qca-nss-clients=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-clients=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-pppoe=y"
@@ -172,6 +179,8 @@ jobs:
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-lag-mgr=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-wifi-meshmgr=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-wlan-mgr=y"
+
+                # 4. Podsystemy Kryptograficzne, Bezpieczeństwo i Sprzętowy OpenVPN
                 echo "CONFIG_PACKAGE_kmod-qca-nss-crypto=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-crypto-v2=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-cfi=y"
@@ -186,8 +195,12 @@ jobs:
                 echo "CONFIG_PACKAGE_qca-nss-crypto-tool=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-ovpn-mgr=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-ovpn-link=y"
+
+                # 5. Odciążanie Głosu / Audio (DSP / PCM)
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-pcm=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-ccp=y"
+
+                # 6. Diagnostyka, Testy i Userspace
                 echo "CONFIG_PACKAGE_nss-userspace-oss=y"
                 echo "CONFIG_PACKAGE_nss-userspace-oss-lib=y"
                 echo "CONFIG_PACKAGE_nss-userspace-oss-nl=y"
@@ -199,10 +212,117 @@ jobs:
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-profile=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-test=y"
                 echo "CONFIG_PACKAGE_kmod-qca-nss-drv-pktinject=y"
+
+                # Pozostałe pakiety i moduły systemowe konfiguracji
                 echo "CONFIG_ALL_KMODS=y"
                 echo "CONFIG_ALL_NONSHARED=y"
+                echo "CONFIG_PACKAGE_block-mount=m"
+                echo "CONFIG_PACKAGE_kmod-crypto-crc32=m"
+                echo "CONFIG_PACKAGE_kmod-fs-exfat=m"
+                echo "CONFIG_PACKAGE_kmod-fs-f2fs=m"
+                echo "CONFIG_PACKAGE_kmod-fs-ntfs3=m"
+                echo "CONFIG_PACKAGE_kmod-fs-vfat=m"
+                echo "CONFIG_PACKAGE_kmod-nls-cp437=m"
+                echo "CONFIG_PACKAGE_kmod-nls-iso8859-1=m"
+                echo "CONFIG_PACKAGE_kmod-nls-utf8=m"
+                echo "CONFIG_PACKAGE_kmod-scsi-core=m"
+                echo "CONFIG_PACKAGE_kmod-usb-storage=m"
+                echo "CONFIG_PACKAGE_kmod-usb-storage-uas=m"
+                echo "CONFIG_PACKAGE_ip-bridge=y"
+                echo "CONFIG_PACKAGE_ip-full=y"
+                echo "CONFIG_PACKAGE_ipset=m"
+                echo "CONFIG_PACKAGE_iptables-mod-conntrack-extra=y"
+                echo "CONFIG_PACKAGE_kmod-bonding=y"
+                echo "CONFIG_PACKAGE_kmod-crypto-kpp=y"
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-chacha20=y"
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-chacha20poly1305=y"
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-curve25519=y"
+                echo "CONFIG_PACKAGE_kmod-crypto-lib-poly1305=y"
+                echo "CONFIG_PACKAGE_kmod-crypto-sha1=y"
+                echo "CONFIG_PACKAGE_kmod-crypto-sha256=y"
+                echo "CONFIG_PACKAGE_kmod-gre=y"
+                echo "CONFIG_PACKAGE_gre=y"
+                echo "CONFIG_PACKAGE_kmod-macvlan=y"
+                echo "CONFIG_PACKAGE_kmod-nat46=y"
+                echo "CONFIG_PACKAGE_kmod-vxlan=y"
+                echo "CONFIG_PACKAGE_kmod-sit=y"
+                echo "CONFIG_PACKAGE_kmod-ip6-tunnel=y"
+                echo "CONFIG_PACKAGE_igmpproxy=y"
+                echo "CONFIG_PACKAGE_kmod-ipt-conntrack=y"
+                echo "CONFIG_PACKAGE_kmod-ipt-conntrack-extra=y"
+                echo "# CONFIG_PACKAGE_kmod-ipt-rtpengine is not set"
+                echo "CONFIG_PACKAGE_kmod-iptunnel=y"
+                echo "CONFIG_PACKAGE_kmod-l2tp=y"
+                echo "CONFIG_PACKAGE_kmod-nf-conncount=y"
+                echo "CONFIG_PACKAGE_kmod-nft-bridge=y"
+                echo "CONFIG_PACKAGE_kmod-pppol2tp=y"
+                echo "CONFIG_PACKAGE_kmod-pptp=y"
+                echo "CONFIG_PACKAGE_kmod-thermal=m"
+                echo "CONFIG_PACKAGE_kmod-tls=y"
+                echo "CONFIG_PACKAGE_kmod-udptunnel4=y"
+                echo "CONFIG_PACKAGE_kmod-udptunnel6=y"
+                echo "CONFIG_PACKAGE_kmod-wireguard=y"
+                echo "CONFIG_PACKAGE_libbpf=y"
+                echo "CONFIG_PACKAGE_libcap=y"
+                echo "CONFIG_PACKAGE_libcap-ng=y"
+                echo "CONFIG_PACKAGE_libelf=y"
+                echo "CONFIG_PACKAGE_libipset=m"
+                echo "CONFIG_PACKAGE_libqrencode=y"
+                echo "CONFIG_PACKAGE_libwebsockets-full=y"
+                echo "CONFIG_PACKAGE_libxdp=m"
+                echo "CONFIG_PACKAGE_libuv=y"
+                echo "CONFIG_PACKAGE_libzstd=y"
+                echo "CONFIG_PACKAGE_luci-app-mwan3=m"
+                echo "CONFIG_PACKAGE_luci-app-ttyd=y"
+                echo "CONFIG_PACKAGE_luci-app-upnp=y"
+                echo "CONFIG_PACKAGE_luci-i18n-mwan3-pl=m"
+                echo "CONFIG_PACKAGE_luci-i18n-ttyd-pl=y"
+                echo "CONFIG_PACKAGE_luci-i18n-upnp-pl=y"
+                echo "CONFIG_PACKAGE_luci-lib-base=y"
+                echo "CONFIG_PACKAGE_luci-lib-ip=y"
+                echo "CONFIG_PACKAGE_luci-lib-json=y"
+                echo "CONFIG_PACKAGE_luci-lib-nixio=y"
+                echo "CONFIG_PACKAGE_luci-lua-runtime=y"
+                echo "CONFIG_PACKAGE_luci-mod-rpc=y"
+                echo "CONFIG_PACKAGE_luci-proto-gre=y"
+                echo "CONFIG_PACKAGE_luci-proto-vxlan=y"
+                echo "CONFIG_PACKAGE_luci-proto-wireguard=y"
+                echo "CONFIG_PACKAGE_map=y"
+                echo "CONFIG_PACKAGE_mesh11sd=m"
+                echo "CONFIG_PACKAGE_miniupnpd-nftables=y"
+                echo "CONFIG_PACKAGE_mwan3=m"
+                echo "CONFIG_PACKAGE_qca-ssdk-shell=y"
+                echo "CONFIG_PACKAGE_qrencode=y"
+                echo "CONFIG_PACKAGE_tc-full=y"
+                echo "# CONFIG_PACKAGE_tc-tiny is not set"
+                echo "CONFIG_PACKAGE_tcpdump=m"
+                echo "CONFIG_PACKAGE_tcpdump-mini=m"
+                echo "CONFIG_PACKAGE_ttyd=y"
+                echo "CONFIG_PACKAGE_vxlan=y"
+                echo "CONFIG_PACKAGE_wget-ssl=y"
+                echo "CONFIG_PACKAGE_wireguard-tools=y"
+                echo "CONFIG_PACKAGE_xdp-filter=m"
+                echo "CONFIG_PACKAGE_xdp-loader=m"
+                echo "CONFIG_PACKAGE_xdpdump=m"
+                echo "CONFIG_PACKAGE_ds-lite=y"
+                echo "CONFIG_PACKAGE_ethtool=y"
+                echo "CONFIG_PACKAGE_luci-i18n-nss-pl=y"
+                echo "CONFIG_PACKAGE_luci-i18n-nssqos-pl=y"
                 echo "CONFIG_LUCI_LANG_pl=y"
               } >> "$CONFIG_FILE"
+              echo "Successfully patched config with CONFIG_NSS_FIRMWARE_VERSION_11_4=y and added all NSS components"
+
+              # Wymuszenie deklaracji opcji kernela TEE / OP-TEE / QCOMTEE dla 11.4
+              KERNEL_CONFIG_TARGET=$(find "${{ github.workspace }}/openwrt/target/linux/qualcommax/" -name "config-6.18" | head -n 1)
+              if [ -f "$KERNEL_CONFIG_TARGET" ]; then
+                {
+                  echo "CONFIG_TEE=m"
+                  echo "CONFIG_OPTEE=m"
+                  echo "CONFIG_QCOMTEE=m"
+                  echo "# CONFIG_OPTEE_INSECURE_LOAD_IMAGE is not set"
+                } >> "$KERNEL_CONFIG_TARGET"
+                echo "--> SUCCESS: Deklaracje jądra TEE zostały dopisane do $KERNEL_CONFIG_TARGET"
+              fi
             else
               {
                 echo "CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
@@ -210,10 +330,71 @@ jobs:
                 echo "CONFIG_PACKAGE_luci-i18n-nssqos-pl=y"
                 echo "CONFIG_LUCI_LANG_pl=y"
               } >> "$CONFIG_FILE"
+              echo "Successfully patched config with CONFIG_NSS_FIRMWARE_VERSION_12_5=y"
             fi
 
-            cp "$CONFIG_FILE" ${{ github.workspace }}/openwrt/.config
-            make -C ${{ github.workspace }}/openwrt defconfig
+            # Systemowe scalenie i18n dla obu wariantów (dodanie do rdzenia luci-base)
+            SOURCE_PO_DIR="${{ github.workspace }}/builder/$DEVICE_DIR/po/pl"
+            LUCI_BASE_PO="${{ github.workspace }}/openwrt/feeds/luci/modules/luci-base/po/pl/base.po"
+
+            if [ ! -f "$LUCI_BASE_PO" ]; then
+              LUCI_BASE_PO=$(find "${{ github.workspace }}/openwrt/" -path "*/luci-base/po/pl/base.po" | head -n 1)
+            fi
+
+            if [ -n "$LUCI_BASE_PO" ] && [ -f "$LUCI_BASE_PO" ]; then
+              if [ -f "$SOURCE_PO_DIR/luci-app-nss.po" ] && [ -f "$SOURCE_PO_DIR/luci-app-nssqos.po" ]; then
+                {
+                  echo -e "\n"
+                  cat "$SOURCE_PO_DIR/luci-app-nss.po"
+                  echo -e "\n"
+                  cat "$SOURCE_PO_DIR/luci-app-nssqos.po"
+                } >> "$LUCI_BASE_PO"
+                echo "--> SUCCESS: Pomyślnie scalono frazy NSS z głównym słownikiem systemowym base.po"
+              else
+                echo "ERROR: Brak plików źródłowych .po w katalogu urządzenia $SOURCE_PO_DIR!" >&2
+                exit 1
+              fi
+            else
+              echo "ERROR: Krytyczny brak pliku base.po w strukturze OpenWrt!" >&2
+              exit 1
+            fi
+
+            # Łatanie plików menu dla struktury dynamicznej luci-base
+            FILES_DIR="${{ github.workspace }}/openwrt/package/nss/nss-tools/files"
+            if [ -f "$FILES_DIR/luci-app-nss.menu.json" ] && [ -f "$FILES_DIR/luci-app-nssqos.menu.json" ]; then
+              sed -i 's/"action":/"i18n": "luci-base",\n\t\t"action":/g' "$FILES_DIR/luci-app-nss.menu.json"
+              sed -i 's/"action":/"i18n": "luci-base",\n\t\t"action":/g' "$FILES_DIR/luci-app-nssqos.menu.json"
+              echo "--> SUCCESS: Pliki menu JSON zostały pomyślnie powiązane z domeną luci-base."
+            else
+              echo "ERROR: Brak krytycznych plików menu w $FILES_DIR!" >&2
+              exit 1
+            fi
+
+            # Pełne dwujęzyczne łatanie wszystkich 12 reguł usług w skrypcie startowym nssqos.init
+            INIT_QOS="${{ github.workspace }}/openwrt/package/nss/nss-tools/files/nssqos.init"
+            if [ -f "$INIT_QOS" ]; then
+              sed -i 's|"Game consoles / Call of Duty"|"Game consoles / Call of Duty (Konsole)"|g' "$INIT_QOS"
+              sed -i 's|"PC games - Steam/Source/CS2"|"PC games - Steam/Source/CS2 (Gry PC)"|g' "$INIT_QOS"
+              sed -i 's|"PC games - Riot (League/Valorant)"|"PC games - Riot (League/Valorant) (Gry PC)"|g' "$INIT_QOS"
+              sed -i 's|"Video call - MS Teams"|"Video call - MS Teams (Wideorozmowy)"|g' "$INIT_QOS"
+              sed -i 's|"Video call - Discord voice"|"Video call - Discord voice (Discord głos)"|g' "$INIT_QOS"
+              sed -i 's|"Video call - WhatsApp"|"Video call - WhatsApp (Wideorozmowy)"|g' "$INIT_QOS"
+              sed -i 's|"Video call - Zoom"|"Video call - Zoom (Wideorozmowy)"|g' "$INIT_QOS"
+              sed -i 's|"VoIP - SIP signaling"|"VoIP - SIP signaling (Sygnalizacja SIP)"|g' "$INIT_QOS"
+              sed -i 's|"VoIP - RTP media"|"VoIP - RTP media (Strumień RTP)"|g' "$INIT_QOS"
+              sed -i 's|"IPTV - Telekom MagentaTV"|"IPTV - Telekom MagentaTV (Telewizja)"|g' "$INIT_QOS"
+              sed -i 's|"Bulk / backups / torrents"|"Bulk / backups / torrents (Masowe/Torrenty)"|g' "$INIT_QOS"
+              sed -i 's|"Video stream - my media CDN"|"Video stream - my media CDN (Strumieniowanie wideo)"|g' "$INIT_QOS"
+              echo "--> SUCCESS: Pomyślnie zaaplikowano zestaw 12 dwujęzycznych reguł w nssqos.init"
+            fi
+
+            # Usunięcie pakietów, które nie kompilują się przy CONFIG_ALL_KMODS=y
+            rm -rf "${{ github.workspace }}/openwrt/package/feeds/telephony/dahdi-linux"
+            rm -rf "${{ github.workspace }}/openwrt/package/kernel/rtl8812au-ct"
+            rm -rf "${{ github.workspace }}/openwrt/package/network/utils/xdp-tools"
+
+            cp "$CONFIG_FILE" "${{ github.workspace }}/openwrt/.config"
+            make -C "${{ github.workspace }}/openwrt" defconfig
           fi
 
       - name: Dynamically update custom OpenWrt banner info
@@ -234,11 +415,11 @@ jobs:
             VERSION_LINE="OpenWrt SNAPSHOT, ${OPENWRT_VERSION_RAW} (edma-${{ matrix.nss_version }})"
             DATE_LINE="Build time: $CURRENT_BUILD_TIME"
 
-            VERSION_PADDING=$(printf '\%-74s' "$VERSION_LINE")
-            FINAL_VERSION_ROW="| ${VERSION_PADDING}|"
+            VERSION_PADDING=$(printf '%-74s' "$VERSION_LINE")
+            FINAL_VERSION_ROW=" | ${VERSION_PADDING}|"
 
-            DATE_PADDING=$(printf '\%-74s' "$DATE_LINE")
-            FINAL_DATE_ROW="| ${DATE_PADDING}|"
+            DATE_PADDING=$(printf '%-74s' "$DATE_LINE")
+            FINAL_DATE_ROW=" | ${DATE_PADDING}|"
 
             sed -i "s#.*VERSION_PLACEHOLDER.*#$FINAL_VERSION_ROW#g" files/etc/banner
             sed -i "s#.*DATE_PLACEHOLDER.*#$FINAL_DATE_ROW#g" files/etc/banner
@@ -299,7 +480,7 @@ jobs:
             echo "Download attempt $attempt failed; retrying..."
             sleep 5
           done
-          echo "grew=$(($(find dl -maxdepth 1 -type f | wc -l) > before))" >>"$GITHUB_OUTPUT"
+          echo "grew=$(($(find dl -maxdepth 1 -type f \vert{} wc -l) > before))" >>"$GITHUB_OUTPUT"
 
       - name: Save sources cache
         if: steps.download.outputs.grew == 1
@@ -341,7 +522,7 @@ jobs:
         working-directory: openwrt
         run: |
           if [ -d "bin/packages" ]; then
-            tar -czf bin/targets/${{ env.TARGET }}/compiled_packages.tar.gz -C bin packages
+            tar -czf "bin/targets/${{ env.TARGET }}/compiled_packages.tar.gz" -C bin packages
           fi
 
       - name: Publish release
