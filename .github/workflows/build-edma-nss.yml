@@ -480,7 +480,8 @@ jobs:
             echo "Download attempt $attempt failed; retrying..."
             sleep 5
           done
-          echo "grew=$(($(find dl -maxdepth 1 -type f \vert{} wc -l) > before))" >>"$GITHUB_OUTPUT"
+          after=$(find dl -maxdepth 1 -type f | wc -l)
+          echo "grew=$((after > before))" >>"$GITHUB_OUTPUT"
 
       - name: Save sources cache
         if: steps.download.outputs.grew == 1
