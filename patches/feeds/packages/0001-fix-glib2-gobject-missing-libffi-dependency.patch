@@ -1,26 +1,22 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Builder <builder@local>
 Date: Tue, 20 Oct 2026 21:00:00 +0200
-Subject: [PATCH] libs/glib2: add missing +libffi dependency to glib2-gobject
-
-The glib2-gobject package links against libffi.so.8 but lacks a direct
-dependency on +libffi, causing APK package building to fail with:
-"Package glib2-gobject is missing dependencies for the following libraries: libffi.so.8"
+Subject: [PATCH] glib2: add missing +libffi dependency to glib2-gobject
 
 Signed-off-by: Builder <builder@local>
 ---
- libs/glib2/Makefile | 2 +-
+ glib2/Makefile | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/libs/glib2/Makefile b/libs/glib2/Makefile
---- a/libs/glib2/Makefile
-+++ b/libs/glib2/Makefile
+diff --git a/glib2/Makefile b/glib2/Makefile
+--- a/glib2/Makefile
++++ b/glib2/Makefile
 @@ -190,7 +190,7 @@
  
  define Package/glib2-gobject
- SECTION:=libs
- CATEGORY:=Libraries
--DEPENDS:=+glib2
-+DEPENDS:=+glib2 +libffi
- TITLE:=GObject - GLib object system
+     SECTION:=libs
+     CATEGORY:=Libraries
+-    DEPENDS:=+glib2
++    DEPENDS:=+glib2 +libffi
+     TITLE:=GObject - GLib object system
  endef
