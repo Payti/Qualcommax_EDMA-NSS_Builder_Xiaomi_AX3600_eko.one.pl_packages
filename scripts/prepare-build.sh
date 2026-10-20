@@ -27,7 +27,7 @@ source "$(dirname -- "$0")/lib/log.sh"
 FEEDS="${FEEDS:-}"
 DEVICE_DIR="$BUILDER_REPO/devices/$DEVICE"
 
-[[ -f "$DEVICE_DIR/config" ]] \vert{}\vert{} log::die "$DEVICE_DIR/config not found"
+[[ -f "$DEVICE_DIR/config" ]] || log::die "$DEVICE_DIR/config not found"
 
 cd "$OPENWRT_DIR"
 
@@ -39,7 +39,7 @@ if [[ -n "$FEEDS" ]]; then
   while IFS= read -r line; do
     [[ -z "$line" ]] && continue
     log::info "  $line"
-    grep -qxF "$line" feeds.conf \vert{}\vert{} echo "$line" >>feeds.conf
+    grep -qxF "$line" feeds.conf || echo "$line" >>feeds.conf
     feed_name="$(awk '{print $2}' <<<"$line")"
     log::info "Updating feed: $feed_name"
     ./scripts/feeds update "$feed_name"
@@ -75,7 +75,7 @@ make defconfig
 log::info "Verifying defconfig kept the requested symbols"
 dropped=()
 while IFS= read -r req; do
-  grep -qxF "$req" .config \vert{}\vert{} dropped+=("$req")
+  grep -qxF "$req" .config || dropped+=("$req")
 done < <(grep -E '^CONFIG_[A-Za-z0-9_-]+=' "$DEVICE_DIR/config" \vert{} grep -vE '=n$')
 
 if ((${#dropped[@]})); then
