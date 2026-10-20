@@ -76,7 +76,7 @@ log::info "Verifying defconfig kept the requested symbols"
 dropped=()
 while IFS= read -r req; do
   grep -qxF "$req" .config || dropped+=("$req")
-done < <(grep -E '^CONFIG_[A-Za-z0-9_-]+=' "$DEVICE_DIR/config" \vert{} grep -vE '=n$')
+done < <(grep -E '^CONFIG_[A-Za-z0-9_-]+=' "$DEVICE_DIR/config" | grep -vE '=n$')
 
 if ((${#dropped[@]})); then
   log::error "defconfig dropped ${#dropped[@]} requested symbol(s) from devices/$DEVICE/config:"
