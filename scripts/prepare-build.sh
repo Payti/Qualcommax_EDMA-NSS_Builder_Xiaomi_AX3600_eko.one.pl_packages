@@ -27,7 +27,7 @@ source "$(dirname -- "$0")/lib/log.sh"
 FEEDS="${FEEDS:-}"
 DEVICE_DIR="$BUILDER_REPO/devices/$DEVICE"
 
-[[ -f "$DEVICE_DIR/config" ]] || log::die "$DEVICE_DIR/config not found"
+[[ -f "$DEVICE_DIR/config" ]] \vert{}\vert{} log::die "$DEVICE_DIR/config not found"
 
 cd "$OPENWRT_DIR"
 
@@ -39,11 +39,7 @@ if [[ -n "$FEEDS" ]]; then
   while IFS= read -r line; do
     [[ -z "$line" ]] && continue
     log::info "  $line"
-    # Idempotent: this script is re-run over an existing tree, and a plain
-    # append duplicates every custom feed on each pass - which then makes
-    # `feeds update` fetch the same feed repeatedly under one name.
-    grep -qxF "$line" feeds.conf || echo "$line" >>feeds.conf
-    # Update + install each custom feed individually so failures are obvious.
+    grep -qxF "$line" feeds.conf \vert{}\vert{} echo "$line" >>feeds.conf
     feed_name="$(awk '{print $2}' <<<"$line")"
     log::info "Updating feed: $feed_name"
     ./scripts/feeds update "$feed_name"
@@ -55,8 +51,7 @@ log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a
 
-# 1b. Apply local patches to feed packages (patches/feeds/<packages>/<kernel>/<feed>/*.patch, paths
-#     relative to the feed root).
+# 1b. Apply local patches to feed packages (patches/feeds/*/*.patch)
 shopt -s nullglob
 for p in "$BUILDER_REPO"/patches/feeds/*/*.patch; do
   feed="feeds/$(basename "$(dirname "$p")")"
@@ -76,17 +71,12 @@ log::info "Assembling .config from devices/$DEVICE/config"
 cp "$DEVICE_DIR/config" .config
 make defconfig
 
-# 2b. Verify defconfig honoured the device config. Kconfig silently drops a
-#     requested symbol whose dependencies are unmet, which is how images have
-#     shipped without pinned options before (ccache, ramoops, the NSS firmware
-#     version) - a build that quietly leaves a package out is worse than one
-#     that stops. Only the requested-on symbols are asserted: a requested "=n"
-#     legitimately comes back on when another selected package depends on it.
+# 2b. Verify defconfig honoured the device config.
 log::info "Verifying defconfig kept the requested symbols"
 dropped=()
 while IFS= read -r req; do
-  grep -qxF "$req" .config || dropped+=("$req")
-done < <(grep -E '^CONFIG_[A-Za-z0-9_-]+=' "$DEVICE_DIR/config" | grep -vE '=n$')
+  grep -qxF "$req" .config \vert{}\vert{} dropped+=("$req")
+done < <(grep -E '^CONFIG_[A-Za-z0-9_-]+=' "$DEVICE_DIR/config" \vert{} grep -vE '=n$')
 
 if ((${#dropped[@]})); then
   log::error "defconfig dropped ${#dropped[@]} requested symbol(s) from devices/$DEVICE/config:"
@@ -94,8 +84,7 @@ if ((${#dropped[@]})); then
   log::die "add the missing dependency or remove the line - do not ship a silently reduced image"
 fi
 
-# 3. Disable bundling of custom feeds into the image (declared src-git, but we only want
-#    the packages explicitly enabled in .config — not every package in the feed).
+# 3. Disable bundling of custom feeds into the image.
 if [[ -n "$FEEDS" ]]; then
   log::info "Disabling CONFIG_FEED_<custom> entries"
   while IFS= read -r line; do
