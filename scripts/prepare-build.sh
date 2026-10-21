@@ -43,19 +43,26 @@ log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a -f
 
-# 1a. Wymuszone zaciągnięcie definicji libffi jako pakietu lokalnego oraz patch glib2
+# 1a. Usunięcie problematycznych feedów, wstrzyknięcie libffi i poprawka zależności
+log::info "Disabling broken third-party feeds (video, audio) to fix recursive dependencies"
+# Usuwamy feedy wideo i audio, które powodują pętle zależności w qt5 i squeezelite
+sed -i '/video/d' feeds.conf || true
+sed -i '/audio/d' feeds.conf || true
+
 log::info "Cloning official libffi recipe to local packages"
-# Tworzymy bezpośredni katalog pakietów lokalnych (pomijamy problematyczne feedy)
 mkdir -p package/libffi
 curl -sS "https://raw.githubusercontent.com" -o package/libffi/Makefile
 
 log::info "Patch glib2 Makefile for libffi dependency"
-cd feeds/packages/libs/glib2
-sed -i 's/DEPENDS:=.*/& +libffi/' Makefile
-cd - >/dev/null
+if [ -d "feeds/packages/libs/glib2" ]; then
+  cd feeds/packages/libs/glib2
+  sed -i 's/DEPENDS:=.*/& +libffi/' Makefile
+  cd - >/dev/null
+fi
 
 log::info "Pre-build host libffi"
-# Budujemy pakiet z nowej, lokalnej ścieżki
+# Poprawka: wymuszamy czysty defconfig, ignorując interaktywne menuconfig
+make defconfig
 make package/libffi/host/compile -j"$(nproc)" || true
 
 # 1b. Apply local patches to feed packages (patches/feeds/*/*.patch)
