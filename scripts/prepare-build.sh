@@ -48,7 +48,7 @@ log::info "Cloning official libffi recipe"
 # Tworzymy strukturę katalogów dla libffi, jeśli nie istnieje
 mkdir -p package/feeds/packages/libffi
 # Pobieramy najświeższą stabilną definicję Makefile dla libffi z oficjalnego OpenWrt
-curl -sS "https://githubusercontent.com" -o package/feeds/packages/libffi/Makefile
+curl -sS "https://raw.githubusercontent.com" -o package/feeds/packages/libffi/Makefile
 
 log::info "Patch glib2 Makefile for libffi dependency"
 cd feeds/packages/libs/glib2
