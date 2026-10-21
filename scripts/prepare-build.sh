@@ -51,7 +51,7 @@ log::info "Updating + installing all feeds"
 # 1a. Wymuszone zaciągnięcie definicji libffi jako pakietu lokalnego oraz patch glib2
 log::info "Cloning official libffi recipe to local packages"
 mkdir -p package/libffi
-curl -sS "https://githubusercontent.com" -o package/libffi/Makefile
+curl -sS "https://raw.githubusercontent.com" -o package/libffi/Makefile
 
 log::info "Patch glib2 Makefile for libffi dependency"
 if [ -d "feeds/packages/libs/glib2" ]; then
