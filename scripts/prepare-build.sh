@@ -41,12 +41,19 @@ fi
 
 log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
-./scripts/feeds install -a
+./scripts/feeds install -a -f
 
-# 1a. Usuwa pakiety wywołujące błędy rekurencji w Kconfig (np. squeezelite-custom)
-log::info "Cleaning up problematic recursive packages..."
-find feeds/obsy -name "*squeezelite*" -exec rm -rf {} + 2>/dev/null || true
-find package/feeds/obsy -name "*squeezelite*" -exec rm -rf {} + 2>/dev/null || true
+# 1a. Patch + kompilacja libffi
+log::info "Patch glib2 Makefile for libffi dependency"
+# Zmieniamy katalog (bez openwrt/, bo już w nim jesteśmy)
+cd feeds/packages/libs/glib2
+sed -i 's/DEPENDS:=.*/& +libffi/' Makefile
+# WRACAMY do głównego katalogu openwrt, żeby dalsza część skryptu działała poprawnie
+cd - >/dev/null
+
+log::info "Pre-build host libffi"
+# Jesteśmy w katalogu openwrt, więc wywołujemy bezpośrednio 'make'
+make package/feeds/packages/libffi/host/compile -j$(nproc) || true
 
 # 1b. Apply local patches to feed packages (patches/feeds/*/*.patch)
 shopt -s nullglob
