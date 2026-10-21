@@ -43,11 +43,20 @@ log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a -f
 
-# 1a. Patch glib2 + compile libffi
+# 1a. Wymuszone zaciągnięcie definicji libffi oraz patch glib2
+log::info "Cloning official libffi recipe"
+# Tworzymy strukturę katalogów dla libffi, jeśli nie istnieje
+mkdir -p package/feeds/packages/libffi
+# Pobieramy najświeższą stabilną definicję Makefile dla libffi z oficjalnego OpenWrt
+curl -sS "https://githubusercontent.com" -o package/feeds/packages/libffi/Makefile
+
 log::info "Patch glib2 Makefile for libffi dependency"
 cd feeds/packages/libs/glib2
 sed -i 's/DEPENDS:=.*/& +libffi/' Makefile
 cd - >/dev/null
+
+# Odświeżamy bazę danych pakietów OpenWrt po ręcznym wstrzyknięciu libffi
+./scripts/feeds install libffi
 
 log::info "Pre-build host libffi"
 make package/feeds/packages/libffi/host/compile -j"$(nproc)" || true
