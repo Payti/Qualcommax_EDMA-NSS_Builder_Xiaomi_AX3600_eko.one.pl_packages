@@ -43,23 +43,20 @@ log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a -f
 
-# 1a. Wymuszone zaciągnięcie definicji libffi oraz patch glib2
-log::info "Cloning official libffi recipe"
-# Tworzymy strukturę katalogów dla libffi, jeśli nie istnieje
-mkdir -p package/feeds/packages/libffi
-# Pobieramy najświeższą stabilną definicję Makefile dla libffi z oficjalnego OpenWrt
-curl -sS "https://raw.githubusercontent.com" -o package/feeds/packages/libffi/Makefile
+# 1a. Wymuszone zaciągnięcie definicji libffi jako pakietu lokalnego oraz patch glib2
+log::info "Cloning official libffi recipe to local packages"
+# Tworzymy bezpośredni katalog pakietów lokalnych (pomijamy problematyczne feedy)
+mkdir -p package/libffi
+curl -sS "https://raw.githubusercontent.com" -o package/libffi/Makefile
 
 log::info "Patch glib2 Makefile for libffi dependency"
 cd feeds/packages/libs/glib2
 sed -i 's/DEPENDS:=.*/& +libffi/' Makefile
 cd - >/dev/null
 
-# Odświeżamy bazę danych pakietów OpenWrt po ręcznym wstrzyknięciu libffi
-./scripts/feeds install libffi
-
 log::info "Pre-build host libffi"
-make package/feeds/packages/libffi/host/compile -j"$(nproc)" || true
+# Budujemy pakiet z nowej, lokalnej ścieżki
+make package/libffi/host/compile -j"$(nproc)" || true
 
 # 1b. Apply local patches to feed packages (patches/feeds/*/*.patch)
 shopt -s nullglob
