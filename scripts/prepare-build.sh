@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prepare a checked-out OpenWrt tree for the build:
 #   1. append the custom feeds and run feeds update/install
-#   2. remove recursive dependency packages
+#   2. remove recursive dependency packages & restore missing core libs
 #   3. assemble .config from the device config, run defconfig
 #   4. disable bundling of custom feeds into the image
 #   5. layer overlay files: device -> device/variant (most specific wins)
@@ -26,42 +26,45 @@ cd "$OPENWRT_DIR"
 # 1. Configure feeds.
 [[ -f feeds.conf ]] || cp feeds.conf.default feeds.conf
 
-# WYCINANIE WADLIWYCH FEEDÓW NA SAMYM POCZĄTKU (Zapobiega pętlom zależności)
-log::info "Disabling broken third-party feeds (video, audio) to prevent cache pollution"
+log::info "Disabling broken third-party feeds (video) to prevent Kconfig recursion"
 sed -i '/video/d' feeds.conf || true
-sed -i '/audio/d' feeds.conf || true
 
 if [[ -n "$FEEDS" ]]; then
   log::info "Appending custom feeds:"
   while IFS= read -r line; do
+    line="${line%$'\r'}"
     [[ -z "$line" ]] && continue
     log::info "  $line"
     grep -qxF "$line" feeds.conf || echo "$line" >>feeds.conf
-    feed_name="$(awk '{print $2}' <<<"$line")"
-    log::info "Updating feed: $feed_name"
-    ./scripts/feeds update "$feed_name"
-    ./scripts/feeds install -a -p "$feed_name"
   done <<<"$FEEDS"
 fi
 
-log::info "Updating + installing all feeds"
+log::info "Updating all feeds"
 ./scripts/feeds update -a
-./scripts/feeds install -a -f
 
-# 1a. Patch glib2 (libffi jest już w rdzeniu OpenWrt, nie pobieramy go przez curl!)
-log::info "Patch glib2 Makefile for libffi dependency"
-if [ -d "feeds/packages/libs/glib2" ]; then
-  cd feeds/packages/libs/glib2
-  sed -i 's/DEPENDS:=.*/& +libffi/' Makefile
-  cd - >/dev/null
+# 1a. Remove broken packages causing Kconfig recursive dependency errors
+log::info "Removing recursive dependency packages (squeezelite, qt5base)"
+rm -rf feeds/obsy/squeezelite package/feeds/obsy/squeezelite
+rm -rf feeds/video/frameworks/qt5/qt5base package/feeds/video/qt5base
+
+# 1b. Ensure libffi exists (moved from feeds/packages to core in newer OpenWrt)
+if [[ ! -d "package/libs/libffi" && ! -d "feeds/packages/libs/libffi" ]]; then
+  log::info "Restoring missing package/libs/libffi from upstream openwrt/main"
+  tmp_libffi="$(mktemp -d)"
+  git clone --depth 1 --filter=blob:none --sparse https://github.com/openwrt/openwrt.git "$tmp_libffi"
+  git -C "$tmp_libffi" sparse-checkout set package/libs/libffi
+  cp -a "$tmp_libffi/package/libs/libffi" package/libs/libffi
+  rm -rf "$tmp_libffi"
 fi
 
-log::info "Pre-build host structures"
-# Czyścimy starą pamięć podręczną i odświeżamy defconfig
-rm -rf tmp
-make defconfig
+# 1c. Patch glib2-gobject Makefile for explicit +libffi dependency
+if [[ -f "feeds/packages/libs/glib2/Makefile" ]]; then
+  log::info "Ensuring glib2-gobject has +libffi dependency"
+  sed -i '/^define Package\/glib2-gobject$/,/^endef$/ { /DEPENDS:=/ { /+libffi/! s/DEPENDS:=.*/& +libffi/ } }' \
+    feeds/packages/libs/glib2/Makefile
+fi
 
-# 1b. Apply local patches to feed packages (patches/feeds/*/*.patch)
+# 1d. Apply local patches to feed packages (patches/feeds/*/*.patch) BEFORE feeds install
 shopt -s nullglob
 for p in "$BUILDER_REPO"/patches/feeds/*/*.patch; do
   feed="feeds/$(basename "$(dirname "$p")")"
@@ -75,6 +78,11 @@ for p in "$BUILDER_REPO"/patches/feeds/*/*.patch; do
   fi
 done
 shopt -u nullglob
+
+# 1e. Install all feeds cleanly after patching and cleanup
+log::info "Installing all feeds"
+rm -rf tmp
+./scripts/feeds install -a -f
 
 # 2. Assemble .config from the device config, then resolve.
 log::info "Assembling .config from devices/$DEVICE/config"
@@ -98,6 +106,7 @@ fi
 if [[ -n "$FEEDS" ]]; then
   log::info "Disabling CONFIG_FEED_<custom> entries"
   while IFS= read -r line; do
+    line="${line%$'\r'}"
     [[ -z "$line" ]] && continue
     feed_name="$(awk '{print $2}' <<<"$line")"
     sed -i "s/^CONFIG_FEED_${feed_name}=.*/# CONFIG_FEED_${feed_name} is not set/" .config || true
