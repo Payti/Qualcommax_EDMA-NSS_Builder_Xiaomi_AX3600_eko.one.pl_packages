@@ -26,7 +26,7 @@ cd "$OPENWRT_DIR"
 # 1. Configure feeds.
 [[ -f feeds.conf ]] || cp feeds.conf.default feeds.conf
 
-# WYCINANIE WADLIWYCH FEEDÓW NA SAMYM POCZĄTKU
+# WYCINANIE WADLIWYCH FEEDÓW NA SAMYM POCZĄTKU (Zapobiega pętlom zależności)
 log::info "Disabling broken third-party feeds (video, audio) to prevent cache pollution"
 sed -i '/video/d' feeds.conf || true
 sed -i '/audio/d' feeds.conf || true
@@ -48,11 +48,7 @@ log::info "Updating + installing all feeds"
 ./scripts/feeds update -a
 ./scripts/feeds install -a -f
 
-# 1a. Wymuszone zaciągnięcie definicji libffi jako pakietu lokalnego oraz patch glib2
-log::info "Cloning official libffi recipe to local packages"
-mkdir -p package/libffi
-curl -sS "https://raw.githubusercontent.com" -o package/libffi/Makefile
-
+# 1a. Patch glib2 (libffi jest już w rdzeniu OpenWrt, nie pobieramy go przez curl!)
 log::info "Patch glib2 Makefile for libffi dependency"
 if [ -d "feeds/packages/libs/glib2" ]; then
   cd feeds/packages/libs/glib2
@@ -60,11 +56,10 @@ if [ -d "feeds/packages/libs/glib2" ]; then
   cd - >/dev/null
 fi
 
-log::info "Pre-build host libffi"
-# Czyszczenie i regeneracja bazy po usunięciu feedów
+log::info "Pre-build host structures"
+# Czyścimy starą pamięć podręczną i odświeżamy defconfig
 rm -rf tmp
 make defconfig
-make package/libffi/host/compile -j"$(nproc)"
 
 # 1b. Apply local patches to feed packages (patches/feeds/*/*.patch)
 shopt -s nullglob
